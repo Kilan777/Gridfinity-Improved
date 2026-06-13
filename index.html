@@ -276,6 +276,7 @@ footer a{
   text-decoration:none;border-bottom:1.5px solid var(--blue);padding-bottom:1px;
 }
 footer a:hover{color:var(--accent-dark);border-color:var(--accent-dark)}
+.foot-credit{font-family:var(--mono);font-size:12px;color:var(--ink-soft)}
 .hide{display:none!important}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}.spin{animation-duration:2s}}
 </style>
@@ -305,7 +306,7 @@ footer a:hover{color:var(--accent-dark);border-color:var(--accent-dark)}
         <input class="log-search" id="logSearch" type="search" placeholder="Search by name, type, size, date…">
         <div class="log-rows" id="logRows"></div>
         <div class="log-foot">
-          <span class="hint" style="margin:0">Every downloaded file is logged here. <b>Load</b> reopens the exact settings, <b>↓</b> regenerates the file. The log is append-only — it lives in <b>log.csv</b> in the repo and can't be cleared from here.</span>
+          <span class="hint" style="margin:0">Every downloaded file is logged here automatically. <b>Load</b> reopens the exact settings, <b>↓</b> regenerates the file. The log is the shared live record — it can't be cleared from here.</span>
         </div>
       </div>
     </div>
@@ -424,23 +425,21 @@ footer a:hover{color:var(--accent-dark);border-color:var(--accent-dark)}
 </main>
 
 <footer>
-  <a id="rawCsvLink" href="log.csv" target="_blank" rel="noopener">View the full log as raw CSV →</a>
+  <span class="foot-credit">a gridfinity product · redesigned by Kilan Rougeot</span>
 </footer>
 
 <script>
 "use strict";
-/* ================= TEAM LOG =================
-   TEAM_LOG_URL — your Apps Script web-app URL. Every download/named part
-     is POSTed here and the script COMMITS it as a row in log.csv in this
-     repo. Setup: team-log-setup.md. Leave empty = local-only logging.
-   LOG_CSV_URL — where to READ the team log from. Leave empty to fetch
-     "log.csv" next to this page (works on GitHub Pages). Set to a raw
-     GitHub URL if hosting the page elsewhere.
-   The team log is append-only and lives in git history — not clearable
-   from the website.                                                      */
-const TEAM_LOG_URL = "";
-const LOG_CSV_URL  = "";
-/* ============================================ */
+/* ================= LIVE LOG (Google Sheets) =================
+   TEAM_LOG_URL — Apps Script web-app URL. Every downloaded file is
+     POSTed here and appended as a row in the Google Sheet.
+   SHEET_CSV_URL — the sheet's "Publish to web" CSV link. The site
+     reads the live log from this. The sheet itself is never linked
+     in the UI; the page only consumes its data.
+   Setup steps: team-log-setup.md. Leave both empty = local-only log. */
+const TEAM_LOG_URL  = "";
+const SHEET_CSV_URL = "";
+/* ============================================================ */
 const $ = s => document.querySelector(s);
 const state = {
   mode:"screws",
@@ -980,27 +979,21 @@ function parseCSV(text){
 }
 async function loadTeam(){
   const rowsEl = $("#logRows");
-  if(!teamEntries.length) rowsEl.innerHTML = `<div class="log-empty">Loading log…</div>`;
-  const urls = [];
-  if(LOG_CSV_URL) urls.push(LOG_CSV_URL);
-  urls.push("log.csv");
-  for(const u of urls){
-    try{
-      const bust = u + (u.includes("?")?"&":"?") + "t=" + Date.now();
-      const r = await fetch(bust, {cache:"no-store"});
-      if(!r.ok) continue;
-      const rows = parseCSV(await r.text());
-      rows.shift(); // header: time,by,kind,name,file,mode,size,capacity,settings_json
-      teamEntries = rows.filter(c=>c.length>=9 && c[0]).map(c=>{
-        let snap=null; try{ snap=JSON.parse(c[8]); }catch(e){}
-        return { t: Date.parse(c[0])||0, kind:c[2]||"", name:c[3]||null,
-                 file:c[4]||"", mode:c[5]||"", size:c[6]||"", cap:c[7]||null, snap };
-      });
-      renderLog();
-      return;
-    }catch(e){}
-  }
-  renderLog(); // fall back to local-only entries
+  if(!teamEntries.length && rowsEl) rowsEl.innerHTML = `<div class="log-empty">Loading log…</div>`;
+  if(!SHEET_CSV_URL){ renderLog(); return; } // local-only until the sheet is wired
+  try{
+    const bust = SHEET_CSV_URL + (SHEET_CSV_URL.includes("?")?"&":"?") + "t=" + Date.now();
+    const r = await fetch(bust, {cache:"no-store"});
+    if(!r.ok) throw 0;
+    const rows = parseCSV(await r.text());
+    rows.shift(); // header: time,kind,name,file,mode,size,capacity,settings_json
+    teamEntries = rows.filter(c=>c.length>=8 && c[0]).map(c=>{
+      let snap=null; try{ snap=JSON.parse(c[7]); }catch(e){}
+      return { t: Date.parse(c[0])||0, kind:c[1]||"", name:c[2]||null,
+               file:c[3]||"", mode:c[4]||"", size:c[5]||"", cap:c[6]||null, snap };
+    });
+  }catch(e){ /* keep whatever we have */ }
+  renderLog();
 }
 // merged view: shared CSV + this browser's just-made entries, de-duped, newest first
 function mergedLog(){
@@ -1482,7 +1475,6 @@ function flash(msg){
 
 /* ========== init ========== */
 applyModeFields(); buildPresets(); buildDetails(); render();
-if(LOG_CSV_URL) $("#rawCsvLink").href = LOG_CSV_URL;
 logStore.load().then(entries=>{
   if(Array.isArray(entries) && entries.length){
     const have = new Set(logEntries.map(e=>e.kind+"|"+e.file+"|"+Math.round(e.t/1000)));

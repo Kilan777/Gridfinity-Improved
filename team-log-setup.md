@@ -1,44 +1,57 @@
-# Team log setup — permanent log.csv in this repo
+# Live log setup — Google Sheet as the database (~10 min, free, no token)
 
-Every download and named part gets committed as a row in `log.csv` in this repo.
-The website's Log tab → "Team log" reads that file, and every entry can be
-reopened (Load) or regenerated and downloaded (↓) right from the site. The log
-is append-only and lives in git history — nobody can clear it from the website.
+Every downloaded file becomes a row in a Google Sheet. The website reads the
+sheet live and shows it in the Log tab — but never links to the sheet itself.
+The sheet is the database; the site just consumes its data.
 
-The page can't hold a GitHub write token (it's public source), so writes go
-through a tiny Google Apps Script that keeps the token server-side. ~10 minutes:
+Two URLs make this work:
+- a **webhook** (Apps Script) the page POSTs each download to → appends a row
+- a **published-CSV link** the page reads the log back from
 
-## 1. Make a GitHub token (fine-grained, this repo only)
-1. github.com → Settings → Developer settings → Personal access tokens → **Fine-grained tokens** → Generate new token
-2. Repository access: **Only select repositories** → `Gridfinity-Improved`
-3. Permissions → Repository permissions → **Contents: Read and write** (nothing else)
-4. Generate, copy the token (shown once)
+## 1. Make the sheet + script
+1. Create a new Google Sheet (this is your live log — name it whatever)
+2. **Extensions → Apps Script**
+3. Delete the placeholder, paste in all of `team-log.gs` from this repo, save
 
-## 2. Create the webhook
-1. script.google.com → **New project**
-2. Paste in everything from `team-log.gs` (the GH_OWNER/GH_REPO at the top are already set to this repo)
-3. Left sidebar gear (Project Settings) → **Script properties** → Add property:
-   - Property: `GITHUB_TOKEN`
-   - Value: the token from step 1
-4. **Deploy → New deployment** → type: **Web app**
-   - Execute as: **Me**
-   - Who has access: **Anyone**
-5. Deploy, authorize, copy the **Web app URL** (`https://script.google.com/macros/s/…/exec`)
+## 2. Deploy the webhook
+1. **Deploy → New deployment** → gear icon → **Web app**
+2. Execute as: **Me** · Who has access: **Anyone**
+3. **Deploy**, authorize when asked (it only touches this sheet)
+4. Copy the **Web app URL** — looks like `https://script.google.com/macros/s/…/exec`
+   → this is your **TEAM_LOG_URL**
 
-## 3. Wire the page
+## 3. Publish the sheet as CSV (so the site can read it)
+1. Back in the sheet: **File → Share → Publish to web**
+2. In the dialog: pick the **`log`** sheet (not "Entire document"), format **Comma-separated values (.csv)**
+3. Click **Publish**, confirm, copy the link it gives you
+   → this is your **SHEET_CSV_URL** (ends in `output=csv`)
+   *(If the `log` tab isn't listed yet, do one test download first so the script
+   creates it, or add a sheet named `log` manually, then publish.)*
+
+## 4. Wire the page
 In `index.html`, near the top of the main script:
 ```js
-const TEAM_LOG_URL = "";   // ← paste the web app URL here
+const TEAM_LOG_URL  = "";   // ← paste the Web app URL
+const SHEET_CSV_URL = "";   // ← paste the published-CSV link
 ```
-Commit & push. Done — the seed `log.csv` is already in the repo.
+Commit & push.
 
 ## How it behaves
-- Each event commits within a few seconds (check the repo's commit history — every download is a commit)
-- The site reads `log.csv` with a cache-buster; GitHub Pages redeploys the file, so brand-new rows can take ~30–60 s to appear in the Team tab
-- One shared log for everyone — no per-person split. Files log only when downloaded (naming a part alone doesn't log it).
-- `settings_json` column holds the complete configuration, so the CSV alone is enough to recreate any part — on the site or by hand
+- Each download POSTs a row; it lands in the sheet within a second or two
+- The Log tab reads the published CSV (Google caches it briefly, so brand-new
+  rows can take ~1–2 min to appear in the site — they show instantly for the
+  person who made them, via the local merge)
+- One shared log for everyone, no per-person split, no names collected
+- Logging happens only on a file download — naming a part alone doesn't log
+- `settings_json` holds the full configuration, so any row → **Load** (reopen
+  on the site) or **↓** (regenerate and download)
+- The sheet doubles as your sortable/filterable master record
 
-## Security notes
-- The token never appears in the page or the repo — only in Apps Script's properties
-- It's scoped to Contents on this one repo; worst case if the webhook URL leaks is junk log rows, which are visible as commits and revertable
-- Rotate the token by generating a new one and updating the script property
+## Notes
+- "Anyone" access on the webhook means anyone with that URL can append rows.
+  The URL isn't guessable and the script only appends to one sheet — worst case
+  is junk rows you can delete in the sheet. Don't reuse this for anything sensitive.
+- Publishing the CSV makes that sheet's data readable by anyone with the link.
+  That's required for the site to read it. Keep nothing private in this sheet.
+- To change the script later: edit → Deploy → Manage deployments → edit → Deploy
+  (URL stays the same).
