@@ -328,7 +328,7 @@ footer a:hover{color:var(--accent-dark);border-color:var(--accent-dark)}
   <div class="builder-switch" role="tablist" aria-label="Builder mode">
     <button class="bs on" id="tabUI" role="tab" aria-selected="true">Build with controls<span class="b-sub">pick sizes yourself</span></button>
     <button class="bs" id="tabAI" role="tab" aria-selected="false">Describe it · AI<span class="b-sub">tell it your part, it configures</span></button>
-    <button class="bs" id="tabLog" role="tab" aria-selected="false">Log <span class="log-count" id="logCount">0</span><span class="b-sub">every named part &amp; download</span></button>
+    <button class="bs" id="tabLog" role="tab" aria-selected="false">Log <span class="log-count" id="logCount">0</span><span class="b-sub">saved parts &amp; versions</span></button>
   </div>
 </header>
 
@@ -343,7 +343,7 @@ footer a:hover{color:var(--accent-dark);border-color:var(--accent-dark)}
         <input class="log-search" id="logSearch" type="search" placeholder="Search by name, type, size, date…">
         <div class="log-rows" id="logRows"></div>
         <div class="log-foot">
-          <span class="hint" style="margin:0">Every downloaded file is logged here automatically. <b>Load</b> reopens the exact settings, <b>↓</b> regenerates the file. The log is the shared live record — it can't be cleared from here.</span>
+          <span class="hint" style="margin:0">Use <b>＋ Log it</b> to save a part here, or <b>Write over a log</b> to update one (sign in with the key icon). <b>Load</b> reopens the exact settings, <b>↓</b> regenerates the file. The log is the shared live record — it can't be cleared from here.</span>
           <button class="log-clear" id="logRefresh" style="color:var(--blue)">refresh</button>
         </div>
       </div>
@@ -446,7 +446,7 @@ footer a:hover{color:var(--accent-dark);border-color:var(--accent-dark)}
       <div class="canvas"><svg id="pv" viewBox="0 0 100 100" role="img" aria-label="Top-down preview of the holder"></svg></div>
       <div class="readout" id="readout"></div>
       <div class="name-row">
-        <label for="partLabel">Part name · optional — naming it logs it</label>
+        <label for="partLabel">Part name · used for downloads and the log</label>
         <input id="partLabel" type="text" autocomplete="off" placeholder="e.g. Interconnect v4">
         <div class="name-preview" id="namePreview"></div>
       </div>
@@ -1052,8 +1052,10 @@ function oldStamp(name){
   const ds=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
   return "old "+ds+" "+(name||"");
 }
+function isArchived(e){ return /^old \d{4}-\d{2}-\d{2} /.test(e.name||""); }
 async function logOverwrite(){
   if(!overwriteTarget){ logMsg("Load an entry first, then write over it.",true); return; }
+  if(isArchived(overwriteTarget)){ logMsg("That's an archived version — can't overwrite history.",true); return; }
   if(!SB.on()){ logMsg("No database configured.",true); return; }
   if(!authed){ logMsg("Sign in with the key icon to overwrite a log.",true); openLogin(); return; }
   const tgt = overwriteTarget;
@@ -1171,7 +1173,7 @@ function renderLog(){
     return hay.includes(q);
   });
   if(!list.length){
-    rows.innerHTML = `<div class="log-empty">${q? "Nothing matches “"+q.replace(/</g,"&lt;")+"”" : "Nothing logged yet — download a file and it shows up here."}</div>`;
+    rows.innerHTML = `<div class="log-empty">${q? "Nothing matches “"+q.replace(/</g,"&lt;")+"”" : "Nothing saved yet — build a part and hit ＋ Log it."}</div>`;
     return;
   }
   const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
@@ -1200,9 +1202,10 @@ function renderLog(){
       Object.assign(state, e.snap);
       partLabel = e.name || "";
       $("#partLabel").value = partLabel;
-      overwriteTarget = (e.id!=null) ? e : null;   // arm "Write over a log" for this entry
+      overwriteTarget = (e.id!=null && !isArchived(e)) ? e : null;   // can't overwrite "old ..." history
       setModeButtons(); applyModeFields(); syncSize(); buildPresets(); buildDetails(); render(); updateNamePreview();
       updateOverBtn();
+      if(isArchived(e)) logMsg("Loaded an archived version (history) — not overwritable.");
       setBuilder("ui");
     });
   });
