@@ -458,7 +458,7 @@ footer a:hover{color:var(--accent-dark);border-color:var(--accent-dark)}
       </div>
       <div class="out-actions" style="padding-top:0">
         <button class="btn" id="logIt" style="border-color:var(--green);color:var(--green);box-shadow:3px 3px 0 rgba(31,122,77,.3)">＋ Log it</button>
-        <button class="btn" id="logOver" style="border-color:var(--blue);color:var(--blue);box-shadow:3px 3px 0 rgba(45,106,159,.3)">⟳ Write over a log</button>
+        <button class="btn" id="logOver" style="border-color:var(--blue);color:var(--blue);box-shadow:3px 3px 0 rgba(45,106,159,.3);display:none">⟳ Write over a log</button>
         <span class="ai-status" id="logActionMsg" style="align-self:center"></span>
       </div>
       <p class="out-note">STL is generated right here and prints as-is — the minimum lip is approximated flat. For the exact lip profile, render the .scad with the <a href="https://github.com/ostat/gridfinity_extended_openscad" target="_blank" rel="noopener">gridfinity_extended</a> repo.</p>
@@ -475,8 +475,7 @@ footer a:hover{color:var(--accent-dark);border-color:var(--accent-dark)}
     </div>
     <div class="modal-b">
       <div id="loginFields">
-        <div><label for="loginEmail">Email</label><input id="loginEmail" type="email" autocomplete="username"></div>
-        <div style="margin-top:10px"><label for="loginPass">Password</label><input id="loginPass" type="password" autocomplete="current-password"></div>
+        <div><label for="loginPass">Editor password</label><input id="loginPass" type="password" autocomplete="current-password"></div>
       </div>
       <div class="modal-msg" id="loginMsg"></div>
       <div class="modal-actions">
@@ -499,6 +498,9 @@ footer a:hover{color:var(--accent-dark);border-color:var(--accent-dark)}
    Setup: supabase-setup.md. Leave blank = local-only log.        */
 const SUPABASE_URL      = "https://wouensvccufqouvwqkrq.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndvdWVuc3ZjY3VmcW91dndxa3JxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzMTE0MDMsImV4cCI6MjA5Njg4NzQwM30.dLXaYjt6b8gS-wIxj1G5b6GHSkz_BbQDwwi_F6WCpZQ";
+// The page logs in with this fixed editor account, so users only type a password.
+// This must match the email of the user you created in Supabase → Authentication → Users.
+const EDITOR_EMAIL = "kilanrou@gmail.com";
 /* ====================================================== */
 const SB = {
   url:  SUPABASE_URL.replace(/\/$/,""),
@@ -515,8 +517,8 @@ const $ = s => document.querySelector(s);
 const state = {
   mode:"screws",
   w:1.5, d:1.5, h:6,
-  divX:1, divY:1, label:true,
-  cableDiv:1, cableLabel:true, slide:true,
+  divX:1, divY:1, label:true, screwSlide:false,
+  cableDiv:1, cableLabel:false, slide:false, cableMode:"count", cableSlot:30,
   pcbStyle:"slots",
   slotLen:35, slotWid:2,
   gap:4, clearance:0.25,
@@ -635,21 +637,41 @@ function buildDetails(){
         ${fld("Dividers across (left↔right)","divX",state.divX,1,1,8)}
         ${fld("Dividers deep (front↔back)","divY",state.divY,1,1,8)}
       </div>
-      <div class="togs">${tog("label",state.label,"Front label shelf","14 mm deep, house standard")}</div>
+      <div class="togs">
+        ${tog("label",state.label,"Front label shelf","14 mm deep, house standard")}
+        ${tog("screwSlide",state.screwSlide,"Finger-slide scoop","off by default — turn on for easy scooping")}
+      </div>
       <p class="hint">Values are compartment counts: 2 across × 1 deep gives two side-by-side pockets.</p>`;
     $("#divX").addEventListener("input",e=>{state.divX=clampInt(e.target.value,1,8);render()});
     $("#divY").addEventListener("input",e=>{state.divY=clampInt(e.target.value,1,8);render()});
     $("#label").addEventListener("change",e=>{state.label=e.target.checked;render()});
+    $("#screwSlide").addEventListener("change",e=>{state.screwSlide=e.target.checked;render()});
   }
   else if(state.mode==="cables"){
-    title.textContent = "Bin details";
+    title.textContent = "Bin layout";
+    const inn = (state.w*42 - 8).toFixed(0);
     body.innerHTML = `
-      <div class="row">${fld("Compartments across","cableDiv",state.cableDiv,1,1,4)}</div>
+      <div class="chips">
+        <button class="chip ${state.cableMode!=="size"?"on":""}" id="cmCount">By count · pick how many</button>
+        <button class="chip ${state.cableMode==="size"?"on":""}" id="cmSize">By size · pick slot width</button>
+      </div>
+      ${state.cableMode==="size"
+        ? `<div class="row">${fld("Each slot at least · mm wide","cableSlot",state.cableSlot,1,8,200)}</div>
+           <p class="hint">Interior is ~${inn} mm wide, so that makes <b>${cableCount()}</b> compartment${cableCount()===1?"":"s"}. Add width in Step 2 for more.</p>`
+        : `<div class="row">${fld("Compartments across","cableDiv",state.cableDiv,1,1,8)}</div>
+           <p class="hint">Each will be about <b>${(( state.w*42-8)/Math.max(1,state.cableDiv)).toFixed(0)}</b> mm wide.</p>`
+      }
       <div class="togs">
-        ${tog("cableLabel",state.cableLabel,"Front label shelf","14 mm deep")}
-        ${tog("slide",state.slide,"Finger-slide scoop","rounded · r 20 — turn off for very tall bins")}
+        ${tog("cableLabel",state.cableLabel,"Front label shelf","off by default for cables")}
+        ${tog("slide",state.slide,"Finger-slide scoop","off by default — turn on to scoop")}
       </div>`;
-    $("#cableDiv").addEventListener("input",e=>{state.cableDiv=clampInt(e.target.value,1,4);render()});
+    $("#cmCount").addEventListener("click",()=>{state.cableMode="count";buildDetails();render()});
+    $("#cmSize").addEventListener("click",()=>{state.cableMode="size";buildDetails();render()});
+    if(state.cableMode==="size"){
+      $("#cableSlot").addEventListener("input",e=>{const v=parseFloat(e.target.value);if(!isNaN(v)&&v>0){state.cableSlot=v;render()}});
+    } else {
+      $("#cableDiv").addEventListener("input",e=>{state.cableDiv=clampInt(e.target.value,1,8);render()});
+    }
     $("#cableLabel").addEventListener("change",e=>{state.cableLabel=e.target.checked;render()});
     $("#slide").addEventListener("change",e=>{state.slide=e.target.checked;render()});
   }
@@ -724,6 +746,18 @@ function labelOn(){
   if(state.mode==="baseplate") return false;
   return state.mode==="screws"?state.label : state.mode==="cables"?state.cableLabel : state.pcbLabel;
 }
+function cableCount(){ // effective compartments across for cables
+  if(state.cableMode==="size"){
+    const inn = state.w*42 - 8;
+    return Math.max(1, Math.floor(inn / Math.max(1,state.cableSlot)));
+  }
+  return Math.max(1, state.cableDiv);
+}
+function slideOn(){ // scoop: off by default, per-mode toggle
+  if(state.mode==="screws") return state.screwSlide;
+  if(state.mode==="cables") return state.slide;
+  return false; // pcbs/baseplate never
+}
 function innerMM(){ return { w: state.w*42 - 8, d: state.d*42 - 8 - (labelOn()?14:0) }; }
 function pcbLayout(){
   const inn = innerMM();
@@ -783,12 +817,12 @@ function drawPreview(){
     s += `<text x="${pad+Wmm/2}" y="${pad+11.5}" font-family="IBM Plex Mono" font-size="5.6" fill="#C84E0B" text-anchor="middle">LABEL · 14</text>`;
     topInset = pad+16.4;
   }
-  if(state.mode!=="pcbs" && (state.mode==="screws" || state.slide)){
+  if(state.mode!=="pcbs" && slideOn()){
     s += `<path d="M ${pad+4} ${pad+Dmm-3} q ${Wmm/2-4} -10 ${Wmm-8} 0" fill="none" stroke="#2D6A9F" stroke-width="0.9" stroke-dasharray="2.5 2"/>`;
     s += `<text x="${pad+Wmm/2}" y="${pad+Dmm-6}" font-family="IBM Plex Mono" font-size="5" fill="#2D6A9F" text-anchor="middle">scoop</text>`;
   }
   if(state.mode==="screws" || state.mode==="cables"){
-    const cx = state.mode==="screws"?state.divX:state.cableDiv;
+    const cx = state.mode==="screws"?state.divX:cableCount();
     const cy = state.mode==="screws"?state.divY:1;
     s += `<g stroke="#0E2A3F" stroke-width="1.1">`;
     for(let i=1;i<cx;i++){const x=pad+2.4+(Wmm-4.8)*i/cx; s+=`<line x1="${x}" y1="${topInset}" x2="${x}" y2="${botLimit}"/>`}
@@ -837,7 +871,7 @@ function drawReadout(){
              <div><span>slot</span><b>${state.slotLen}×${state.slotWid} +${state.clearance}</b></div>
              <div><span>slot depth</span><b style="${sdi.clamped?'color:var(--red)':''}">${sdi.sd.toFixed(1)} mm${sdi.clamped?" (capped)":""}</b></div>`;
   } else {
-    const cx = state.mode==="screws"?state.divX:state.cableDiv;
+    const cx = state.mode==="screws"?state.divX:cableCount();
     const cy = state.mode==="screws"?state.divY:1;
     extra = `<div><span>compartments</span><b>${cx*cy}</b></div>`;
   }
@@ -874,20 +908,18 @@ function params(){
   const lab = labelOn();
   push("label_style", lab?`"normal"`:`"disabled"`);
   if(lab) push("label_size","[0, 14, 0, 0.6]","house · depth 14");
-  if(state.mode==="pcbs"){
-    push("fingerslide",`"none"`);
-  } else if(state.mode==="cables" && !state.slide){
-    push("fingerslide",`"none"`);
+  if(slideOn()){
+    push("fingerslide",`"rounded"`);
+    push("fingerslide_radius","20");
   } else {
-    push("fingerslide",`"rounded"`,"house");
-    push("fingerslide_radius","20","house");
+    push("fingerslide",`"none"`,"scoop off");
   }
   if(state.mode==="screws"){
     push("vertical_chambers",String(state.divX));
     push("horizontal_chambers",String(state.divY));
   }
   if(state.mode==="cables"){
-    push("vertical_chambers",String(state.cableDiv));
+    push("vertical_chambers",String(cableCount()));
   }
   if(state.mode==="pcbs"){
     const lay = pcbLayout();
@@ -951,7 +983,7 @@ let partLabel = "";
 function capacityText(){
   if(state.mode==="pcbs"){ const l=pcbLayout(); return `${l.total} boards`; }
   if(state.mode==="baseplate") return `${Math.round(state.w)*Math.round(state.d)} cells`;
-  const n = state.mode==="screws" ? state.divX*state.divY : state.cableDiv;
+  const n = state.mode==="screws" ? state.divX*state.divY : cableCount();
   return n>1 ? `${n} compartments` : "";
 }
 function sanitizeName(s){ return s.replace(/[\/\\:*?"<>|#%&{}]+/g,"").replace(/\s+/g," ").trim(); }
@@ -970,7 +1002,7 @@ function updateNamePreview(){
 
 /* ========== build log ========== */
 function snapshot(){
-  const keys=["mode","w","d","h","divX","divY","label","cableDiv","cableLabel","slide",
+  const keys=["mode","w","d","h","divX","divY","label","screwSlide","cableDiv","cableLabel","slide","cableMode","cableSlot",
     "pcbStyle","slotLen","slotWid","gap","clearance","countMode","nx","ny","holeDepth","pcbLabel",
     "plateStyle","plateWeight"];
   const s={}; keys.forEach(k=>s[k]=state[k]); return s;
@@ -1206,26 +1238,27 @@ function openLogin(){
   if(authed){ if(confirm("Sign out of the editor?")) signOut(); return; }
   if(!SB.on()){ alert("The editor isn't set up yet (no database configured)."); return; }
   $("#loginMsg").textContent=""; $("#loginMsg").classList.remove("err");
-  $("#loginModal").classList.remove("hide"); $("#loginEmail").focus();
+  $("#loginModal").classList.remove("hide"); $("#loginPass").focus();
 }
 function closeLogin(){ $("#loginModal").classList.add("hide"); }
-function signOut(){ authed=false; SB.token=null; $("#keyBtn").classList.remove("authed"); renderLog(); }
+function signOut(){ authed=false; SB.token=null; $("#keyBtn").classList.remove("authed"); $("#logOver").style.display="none"; overwriteTarget=null; renderLog(); }
 async function doLogin(){
-  const email=$("#loginEmail").value.trim(), pass=$("#loginPass").value;
+  const pass=$("#loginPass").value;
   const msg=$("#loginMsg");
-  if(!email||!pass){ msg.textContent="Enter email and password."; msg.classList.add("err"); return; }
+  if(!pass){ msg.textContent="Enter the editor password."; msg.classList.add("err"); return; }
   msg.classList.remove("err"); msg.textContent="Signing in…";
   try{
     const r=await fetch(SB.url+"/auth/v1/token?grant_type=password",{
       method:"POST", headers:{apikey:SB.key,"Content-Type":"application/json"},
-      body:JSON.stringify({email,password:pass})
+      body:JSON.stringify({email:EDITOR_EMAIL,password:pass})
     });
     const d=await r.json();
-    if(!r.ok || !d.access_token) throw new Error(d.error_description||d.msg||"Login failed");
+    if(!r.ok || !d.access_token) throw new Error(d.error_description||d.msg||"Wrong password");
     SB.token=d.access_token; authed=true;
     $("#keyBtn").classList.add("authed");
+    $("#logOver").style.display="";
     closeLogin(); $("#loginPass").value=""; renderLog();
-  }catch(err){ msg.textContent=err.message; msg.classList.add("err"); }
+  }catch(err){ msg.textContent=(/password|invalid|credential/i.test(err.message)?"Wrong password.":err.message); msg.classList.add("err"); }
 }
 async function sbUpdate(entry, fields){
   if(!entry || entry.id==null) return;
@@ -1436,7 +1469,7 @@ function buildMesh(){
     wallLoop(cav, floorTop, H, true, tris);
     capEar(cav, [], floorTop, true, tris);
     // dividers (overlapped 0.5 mm into walls and floor)
-    const cx=state.mode==="screws"?state.divX:state.cableDiv;
+    const cx=state.mode==="screws"?state.divX:cableCount();
     const cy=state.mode==="screws"?state.divY:1;
     const ix0=-W/2+WALL, ix1=W/2-WALL;
     const iy0=innFrontY+(lab?14:0), iy1=D/2-WALL;
@@ -1454,7 +1487,7 @@ function buildMesh(){
       extrudeX([[y0-0.5,H],[y0+14,H],[y0+14,H-1.2],[y0-0.5,H-15.7]], -W/2+0.8, W/2-0.8, tris);
     }
     // finger-slide scoop (front wall, +y side), overlapped into wall and floor
-    if(state.mode==="screws" || state.slide){
+    if(slideOn()){
       const y1=D/2-WALL;
       const R=Math.min(20, H-floorTop, (D-2*WALL)*0.7);
       if(R>2){
@@ -1506,7 +1539,7 @@ Schema (omit fields that don't apply):
  "d": number,   // depth, same rules
  "h": integer,  // height in 7 mm units, range 2-20 (not used for baseplates)
  "divX": int, "divY": int, "label": boolean,            // screws mode: compartments across / deep
- "cableDiv": int, "slide": boolean, "cableLabel": boolean,  // cables mode
+ "cableDiv": int, "cableSlot": number, "slide": boolean, "cableLabel": boolean,  // cables: set EITHER cableDiv (count) OR cableSlot (min mm per compartment). slide & label default false.
  "plateStyle": "minimal" | "solid", "plateWeight": boolean,  // baseplate mode
  "pcbStyle": "slots" | "pockets",
  "slotLen": number,   // mm, slot long dimension
@@ -1526,7 +1559,7 @@ Sizing rules:
 - Boards lying flat: pcbStyle "pockets", slotLen = board length + 0.5, slotWid = board width + 0.5, holeDepth = board height + 1.
 - Height for pcbs: if you set holeDepth > 0, set h = ceil((holeDepth + 6.75) / 7) — slot depth plus 2 mm structural floor plus the 4.75 mm base. For edge slots pick holeDepth ≈ 35-50% of the board's standing dimension. For pockets, holeDepth = board height + 1.
 - If no quantity is given use countMode "auto".
-- Screw/cable bins: prefer the team's usual sizes (1.5-wide bins for small hardware, 2.5x3 or 2.5x4 at h10 for bulk).
+- Screw/cable bins: prefer the team's usual sizes (1.5-wide bins for small hardware, 2.5x3 or 2.5x4 at h10 for bulk). The finger-slide scoop is OFF by default everywhere — only set slide:true if the user asks to scoop or pour. Cable label is off by default.
 - Baseplates: mode "baseplate", whole units sized to the space described (divide mm by 42 and round down). Default plateStyle "minimal"; "solid" if they mention weight, sturdiness, or a loose surface.`;
 
 $("#keyToggle").addEventListener("click",()=>{
@@ -1596,9 +1629,11 @@ function applyAIConfig(c){
     if(isFinite(c.divX)) state.divX=clampInt(c.divX,1,8);
     if(isFinite(c.divY)) state.divY=clampInt(c.divY,1,8);
     if(typeof c.label==="boolean") state.label=c.label;
+    if(typeof c.slide==="boolean") state.screwSlide=c.slide;
   }
   if(state.mode==="cables"){
-    if(isFinite(c.cableDiv)) state.cableDiv=clampInt(c.cableDiv,1,4);
+    if(isFinite(c.cableDiv)){ state.cableDiv=clampInt(c.cableDiv,1,8); state.cableMode="count"; }
+    if(isFinite(c.cableSlot)&&c.cableSlot>0){ state.cableSlot=+(+c.cableSlot).toFixed(0); state.cableMode="size"; }
     if(typeof c.slide==="boolean") state.slide=c.slide;
     if(typeof c.cableLabel==="boolean") state.cableLabel=c.cableLabel;
   }
