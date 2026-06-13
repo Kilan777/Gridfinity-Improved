@@ -307,6 +307,7 @@ footer a:hover{color:var(--accent-dark);border-color:var(--accent-dark)}
         <div class="log-rows" id="logRows"></div>
         <div class="log-foot">
           <span class="hint" style="margin:0">Every downloaded file is logged here automatically. <b>Load</b> reopens the exact settings, <b>↓</b> regenerates the file. The log is the shared live record — it can't be cleared from here.</span>
+          <button class="log-clear" id="logRefresh" style="color:var(--blue)">refresh</button>
         </div>
       </div>
     </div>
@@ -485,7 +486,7 @@ function setBuilder(view){ // 'ui' | 'ai' | 'log'
   document.querySelectorAll(".ui-only").forEach(el=>el.classList.toggle("hide",view!=="ui"));
   $("#aiPanel").classList.toggle("hide",view!=="ai");
   $("#logPanel").classList.toggle("hide",view!=="log");
-  if(view==="log") loadTeam();
+  if(view==="log"){ loadTeam(); startLogPoll(); } else { stopLogPoll(); }
 }
 $("#tabUI").addEventListener("click",()=>setBuilder("ui"));
 $("#tabAI").addEventListener("click",()=>setBuilder("ai"));
@@ -980,19 +981,40 @@ function parseCSV(text){
 async function loadTeam(){
   const rowsEl = $("#logRows");
   if(!teamEntries.length && rowsEl) rowsEl.innerHTML = `<div class="log-empty">Loading log…</div>`;
-  if(!SHEET_CSV_URL){ renderLog(); return; } // local-only until the sheet is wired
-  try{
-    const bust = SHEET_CSV_URL + (SHEET_CSV_URL.includes("?")?"&":"?") + "t=" + Date.now();
-    const r = await fetch(bust, {cache:"no-store"});
-    if(!r.ok) throw 0;
-    const rows = parseCSV(await r.text());
-    rows.shift(); // header: time,kind,name,file,mode,size,capacity,settings_json
-    teamEntries = rows.filter(c=>c.length>=8 && c[0]).map(c=>{
-      let snap=null; try{ snap=JSON.parse(c[7]); }catch(e){}
-      return { t: Date.parse(c[0])||0, kind:c[1]||"", name:c[2]||null,
-               file:c[3]||"", mode:c[4]||"", size:c[5]||"", cap:c[6]||null, snap };
-    });
-  }catch(e){ /* keep whatever we have */ }
+  // Preferred: live JSON straight from the Apps Script (no cache delay)
+  if(TEAM_LOG_URL){
+    try{
+      const bust = TEAM_LOG_URL + (TEAM_LOG_URL.includes("?")?"&":"?") + "t=" + Date.now();
+      const r = await fetch(bust, {cache:"no-store", redirect:"follow"});
+      if(r.ok){
+        const data = await r.json();
+        if(Array.isArray(data)){
+          teamEntries = data.map(e=>({
+            t:+e.t||0, kind:e.kind||"", name:e.name||null, file:e.file||"",
+            mode:e.mode||"", size:e.size||"", cap:e.cap||null, snap:e.snap||null
+          }));
+          renderLog();
+          return;
+        }
+      }
+    }catch(e){ /* fall through to CSV */ }
+  }
+  // Fallback: published CSV (cached a few minutes by Google)
+  if(SHEET_CSV_URL){
+    try{
+      const bust = SHEET_CSV_URL + (SHEET_CSV_URL.includes("?")?"&":"?") + "t=" + Date.now();
+      const r = await fetch(bust, {cache:"no-store"});
+      if(r.ok){
+        const rows = parseCSV(await r.text());
+        rows.shift();
+        teamEntries = rows.filter(c=>c.length>=8 && c[0]).map(c=>{
+          let snap=null; try{ snap=JSON.parse(c[7]); }catch(e){}
+          return { t: Date.parse(c[0])||0, kind:c[1]||"", name:c[2]||null,
+                   file:c[3]||"", mode:c[4]||"", size:c[5]||"", cap:c[6]||null, snap };
+        });
+      }
+    }catch(e){}
+  }
   renderLog();
 }
 // merged view: shared CSV + this browser's just-made entries, de-duped, newest first
@@ -1073,6 +1095,11 @@ function renderLog(){
   });
 }
 $("#logSearch").addEventListener("input",renderLog);
+$("#logRefresh").addEventListener("click",loadTeam);
+// auto-refresh the log every 12s while the Log tab is open
+let logPoll=null;
+function startLogPoll(){ stopLogPoll(); logPoll=setInterval(()=>{ if(!$("#logPanel").classList.contains("hide")) loadTeam(); }, 12000); }
+function stopLogPoll(){ if(logPoll){ clearInterval(logPoll); logPoll=null; } }
 // naming: updates the filename preview only — logging happens on download
 $("#partLabel").addEventListener("input",e=>{
   partLabel = e.target.value;
