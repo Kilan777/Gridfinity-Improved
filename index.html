@@ -964,31 +964,6 @@ function updateNamePreview(){
 }
 
 /* ========== build log ========== */
-let logEntries = [];
-const logStore = {
-  async load(){
-    try{
-      if(typeof window!=="undefined" && window.storage && window.storage.get){
-        const r = await window.storage.get("holder-log");
-        if(r && r.value) return JSON.parse(r.value);
-      }
-    }catch(e){}
-    try{
-      const v = localStorage.getItem("holder-log");
-      if(v) return JSON.parse(v);
-    }catch(e){}
-    return [];
-  },
-  async save(entries){
-    const s = JSON.stringify(entries.slice(0,300)); // cap the log
-    try{
-      if(typeof window!=="undefined" && window.storage && window.storage.set){
-        await window.storage.set("holder-log", s); return;
-      }
-    }catch(e){}
-    try{ localStorage.setItem("holder-log", s); }catch(e){}
-  }
-};
 function snapshot(){
   const keys=["mode","w","d","h","divX","divY","label","cableDiv","cableLabel","slide",
     "pcbStyle","slotLen","slotWid","gap","clearance","countMode","nx","ny","holeDepth","pcbLabel",
@@ -999,7 +974,7 @@ function sizeText(){
   return state.mode==="baseplate" ? `${Math.round(state.w)}×${Math.round(state.d)}` : `${state.w}×${state.d}×${state.h}`;
 }
 function addLog(kind, file){
-  const top = logEntries[0];
+  const top = teamEntries[0];
   if(top && top.kind===kind && top.file===file && Date.now()-top.t < 4000) return; // de-dupe double clicks
   const entry = {
     t: Date.now(),
@@ -1011,22 +986,30 @@ function addLog(kind, file){
     cap: capacityText() || null,
     snap: snapshot()
   };
-  logEntries.unshift(entry);
-  logStore.save(logEntries);
   if(SB.on()){
-    try{
-      fetch(SB.url+"/rest/v1/log", {
-        method:"POST",
-        headers:SB.headers({Prefer:"return=minimal"}),
-        body: JSON.stringify({
-          t:entry.t, kind:entry.kind, name:entry.name, file:entry.file,
-          mode:entry.mode, size:entry.size, capacity:entry.cap, snap:entry.snap
-        })
-      });
-    }catch(e){}
+    // insert and let Supabase be the single source of truth
+    fetch(SB.url+"/rest/v1/log", {
+      method:"POST",
+      headers:SB.headers({Prefer:"return=representation"}),
+      body: JSON.stringify({
+        t:entry.t, kind:entry.kind, name:entry.name, file:entry.file,
+        mode:entry.mode, size:entry.size, capacity:entry.cap, snap:entry.snap
+      })
+    }).then(r=>r.ok?r.json():null).then(rows=>{
+      if(rows && rows[0]){
+        const row=rows[0];
+        teamEntries.unshift({ id:row.id, t:+row.t||Date.now(), kind:row.kind, name:row.name,
+          file:row.file, mode:row.mode, size:row.size, cap:row.capacity, snap:row.snap });
+        updateLogCount();
+        if(!$("#logPanel").classList.contains("hide")) renderLog();
+      } else { loadTeam(); }
+    }).catch(()=>{});
+  } else {
+    // no database configured: keep it in memory only for this session
+    teamEntries.unshift(entry);
+    updateLogCount();
+    if(!$("#logPanel").classList.contains("hide")) renderLog();
   }
-  updateLogCount();
-  if(!$("#logPanel").classList.contains("hide")) renderLog();
 }
 let teamEntries = [];
 function parseCSV(text){
@@ -1064,15 +1047,9 @@ async function loadTeam(){
   }catch(e){}
   renderLog();
 }
-// merged view: shared CSV + this browser's just-made entries, de-duped, newest first
+// single source of truth: the database (teamEntries), newest first
 function mergedLog(){
-  const seen = new Set(), out = [];
-  for(const e of [...logEntries, ...teamEntries]){
-    const key = e.kind+"|"+e.file+"|"+Math.round(e.t/1000);
-    if(seen.has(key)) continue;
-    seen.add(key); out.push(e);
-  }
-  return out.sort((a,b)=>b.t-a.t);
+  return [...teamEntries].sort((a,b)=>b.t-a.t);
 }
 function updateLogCount(){
   $("#logCount").textContent = mergedLog().length;
@@ -1626,16 +1603,9 @@ function flash(msg){
 }
 
 /* ========== init ========== */
+try{ localStorage.removeItem("holder-log"); }catch(e){}  // clear old local copies (ghost entries)
 applyModeFields(); buildPresets(); buildDetails(); render();
-logStore.load().then(entries=>{
-  if(Array.isArray(entries) && entries.length){
-    const have = new Set(logEntries.map(e=>e.kind+"|"+e.file+"|"+Math.round(e.t/1000)));
-    entries.forEach(e=>{ if(!have.has(e.kind+"|"+e.file+"|"+Math.round(e.t/1000))) logEntries.push(e); });
-    logEntries.sort((a,b)=>b.t-a.t);
-  }
-  updateLogCount();
-  loadTeam(); // pull shared CSV so the count and log reflect everyone
-});
+loadTeam(); // the database is the single source of truth
 </script>
 </body>
 </html>
