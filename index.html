@@ -1,0 +1,1519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Holder Generator · Team Gridfinity</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+/* earcut v2.2.4 — (c) Mapbox, ISC license — inlined so the page has zero external script dependencies */
+(function(){var module=undefined,exports=undefined,define=undefined;
+!function(e){"object"==typeof exports&&"undefined"!=typeof module?module.exports=e():"function"==typeof define&&define.amd?define([],e):("undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof self?self:this).earcut=e()}(function(){return function r(x,i,u){function f(n,e){if(!i[n]){if(!x[n]){var t="function"==typeof require&&require;if(!e&&t)return t(n,!0);if(o)return o(n,!0);throw(e=new Error("Cannot find module '"+n+"'")).code="MODULE_NOT_FOUND",e}t=i[n]={exports:{}},x[n][0].call(t.exports,function(e){return f(x[n][1][e]||e)},t,t.exports,r,x,i,u)}return i[n].exports}for(var o="function"==typeof require&&require,e=0;e<u.length;e++)f(u[e]);return f}({1:[function(e,n,t){"use strict";function r(e,n,t){t=t||2;var r,x,i,u,f,o=n&&n.length,v=o?n[0]*t:e.length,p=s(e,0,v,t,!0),y=[];if(p&&p.next!==p.prev){if(o&&(p=function(e,n,t,r){var x,i,u,f,o=[];for(x=0,i=n.length;x<i;x++)f=n[x]*r,u=x<i-1?n[x+1]*r:e.length,(f=s(e,f,u,r,!1))===f.next&&(f.steiner=!0),o.push(function(e){var n=e,t=e;for(;(n.x<t.x||n.x===t.x&&n.y<t.y)&&(t=n),n=n.next,n!==e;);return t}(f));for(o.sort(c),x=0;x<o.length;x++)t=function(e,n){var t=function(e,n){var t,r=n,x=e.x,i=e.y,u=-1/0;do{if(i<=r.y&&i>=r.next.y&&r.next.y!==r.y){var f=r.x+(i-r.y)*(r.next.x-r.x)/(r.next.y-r.y);if(f<=x&&u<f&&(u=f,t=r.x<r.next.x?r:r.next,f===x))return t}}while(r=r.next,r!==n);if(!t)return null;var o,v=t,p=t.x,y=t.y,a=1/0;r=t;for(;x>=r.x&&r.x>=p&&x!==r.x&&D(i<y?x:u,i,p,y,i<y?u:x,i,r.x,r.y)&&(o=Math.abs(i-r.y)/(x-r.x),_(r,e)&&(o<a||o===a&&(r.x>t.x||r.x===t.x&&function(e,n){return E(e.prev,e,n.prev)<0&&E(n.next,e,e.next)<0}(t,r)))&&(t=r,a=o)),r=r.next,r!==v;);return t}(e,n);if(!t)return n;n=j(t,e);return q(n,n.next),q(t,t.next)}(o[x],t);return t}(e,n,p,t)),e.length>80*t){for(var a=r=e[0],l=x=e[1],h=t;h<v;h+=t)(i=e[h])<a&&(a=i),(u=e[h+1])<l&&(l=u),r<i&&(r=i),x<u&&(x=u);f=0!==(f=Math.max(r-a,x-l))?32767/f:0}O(p,y,t,a,l,f,0)}return y}function s(e,n,t,r,x){var i,u;if(x===0<d(e,n,t,r))for(i=n;i<t;i+=r)u=f(i,e[i],e[i+1],u);else for(i=t-r;n<=i;i-=r)u=f(i,e[i],e[i+1],u);return u&&N(u,u.next)&&(C(u),u=u.next),u}function q(e,n){if(!e)return e;n=n||e;var t,r=e;do{if(t=!1,r.steiner||!N(r,r.next)&&0!==E(r.prev,r,r.next))r=r.next;else{if(C(r),(r=n=r.prev)===r.next)break;t=!0}}while(t||r!==n);return n}function O(e,n,t,r,x,i,u){if(e){if(!u&&i){for(var f=e,o=r,v=x,p=i,y=f;0===y.z&&(y.z=k(y.x,y.y,o,v,p)),y.prevZ=y.prev,y.nextZ=y.next,(y=y.next)!==f;);y.prevZ.nextZ=null,y.prevZ=null;var a,l,h,s,c,d,Z,g,w=y,M=1;do{for(l=w,c=w=null,d=0;l;){for(d++,h=l,a=Z=0;a<M&&(Z++,h=h.nextZ);a++);for(g=M;0<Z||0<g&&h;)0!==Z&&(0===g||!h||l.z<=h.z)?(l=(s=l).nextZ,Z--):(h=(s=h).nextZ,g--),c?c.nextZ=s:w=s,s.prevZ=c,c=s;l=h}}while(c.nextZ=null,M*=2,1<d)}for(var b,m,z=e;e.prev!==e.next;)if(b=e.prev,m=e.next,i?function(e,n,t,r){var x=e.prev,i=e,u=e.next;if(0<=E(x,i,u))return;var f=x.x,o=i.x,v=u.x,p=x.y,y=i.y,a=u.y,l=f<o?f<v?f:v:o<v?o:v,h=p<y?p<a?p:a:y<a?y:a,s=o<f?v<f?f:v:v<o?o:v,c=y<p?a<p?p:a:a<y?y:a,d=k(l,h,n,t,r),Z=k(s,c,n,t,r),g=e.prevZ,w=e.nextZ;for(;g&&g.z>=d&&w&&w.z<=Z;){if(g.x>=l&&g.x<=s&&g.y>=h&&g.y<=c&&g!==x&&g!==u&&D(f,p,o,y,v,a,g.x,g.y)&&0<=E(g.prev,g,g.next))return;if(g=g.prevZ,w.x>=l&&w.x<=s&&w.y>=h&&w.y<=c&&w!==x&&w!==u&&D(f,p,o,y,v,a,w.x,w.y)&&0<=E(w.prev,w,w.next))return;w=w.nextZ}for(;g&&g.z>=d;){if(g.x>=l&&g.x<=s&&g.y>=h&&g.y<=c&&g!==x&&g!==u&&D(f,p,o,y,v,a,g.x,g.y)&&0<=E(g.prev,g,g.next))return;g=g.prevZ}for(;w&&w.z<=Z;){if(w.x>=l&&w.x<=s&&w.y>=h&&w.y<=c&&w!==x&&w!==u&&D(f,p,o,y,v,a,w.x,w.y)&&0<=E(w.prev,w,w.next))return;w=w.nextZ}return 1}(e,r,x,i):function(e){var n=e.prev,t=e,e=e.next;if(0<=E(n,t,e))return;var r=n.x,x=t.x,i=e.x,u=n.y,f=t.y,o=e.y,v=r<x?r<i?r:i:x<i?x:i,p=u<f?u<o?u:o:f<o?f:o,y=x<r?i<r?r:i:i<x?x:i,a=f<u?o<u?u:o:o<f?f:o,l=e.next;for(;l!==n;){if(l.x>=v&&l.x<=y&&l.y>=p&&l.y<=a&&D(r,u,x,f,i,o,l.x,l.y)&&0<=E(l.prev,l,l.next))return;l=l.next}return 1}(e))n.push(b.i/t|0),n.push(e.i/t|0),n.push(m.i/t|0),C(e),e=m.next,z=m.next;else if((e=m)===z){u?1===u?O(e=function(e,n,t){var r=e;do{var x=r.prev,i=r.next.next}while(!N(x,i)&&U(x,r,r.next,i)&&_(x,i)&&_(i,x)&&(n.push(x.i/t|0),n.push(r.i/t|0),n.push(i.i/t|0),C(r),C(r.next),r=e=i),r=r.next,r!==e);return q(r)}(q(e),n,t),n,t,r,x,i,2):2===u&&function(e,n,t,r,x,i){var u=e;do{for(var f,o=u.next.next;o!==u.prev;){if(u.i!==o.i&&function(e,n){return e.next.i!==n.i&&e.prev.i!==n.i&&!function(e,n){var t=e;do{if(t.i!==e.i&&t.next.i!==e.i&&t.i!==n.i&&t.next.i!==n.i&&U(t,t.next,e,n))return 1}while(t=t.next,t!==e);return}(e,n)&&(_(e,n)&&_(n,e)&&function(e,n){var t=e,r=!1,x=(e.x+n.x)/2,i=(e.y+n.y)/2;for(;t.y>i!=t.next.y>i&&t.next.y!==t.y&&x<(t.next.x-t.x)*(i-t.y)/(t.next.y-t.y)+t.x&&(r=!r),t=t.next,t!==e;);return r}(e,n)&&(E(e.prev,e,n.prev)||E(e,n.prev,n))||N(e,n)&&0<E(e.prev,e,e.next)&&0<E(n.prev,n,n.next))}(u,o))return f=j(u,o),u=q(u,u.next),f=q(f,f.next),O(u,n,t,r,x,i,0),O(f,n,t,r,x,i,0);o=o.next}}while(u=u.next,u!==e)}(e,n,t,r,x,i):O(q(e),n,t,r,x,i,1);break}}}function c(e,n){return e.x-n.x}function k(e,n,t,r,x){return(e=1431655765&((e=858993459&((e=252645135&((e=16711935&((e=(e-t)*x|0)|e<<8))|e<<4))|e<<2))|e<<1))|(n=1431655765&((n=858993459&((n=252645135&((n=16711935&((n=(n-r)*x|0)|n<<8))|n<<4))|n<<2))|n<<1))<<1}function D(e,n,t,r,x,i,u,f){return(e-u)*(i-f)<=(x-u)*(n-f)&&(t-u)*(n-f)<=(e-u)*(r-f)&&(x-u)*(r-f)<=(t-u)*(i-f)}function E(e,n,t){return(n.y-e.y)*(t.x-n.x)-(n.x-e.x)*(t.y-n.y)}function N(e,n){return e.x===n.x&&e.y===n.y}function U(e,n,t,r){var x=v(E(e,n,t)),i=v(E(e,n,r)),u=v(E(t,r,e)),f=v(E(t,r,n));return x!==i&&u!==f||(0===x&&o(e,t,n)||(0===i&&o(e,r,n)||(0===u&&o(t,e,r)||!(0!==f||!o(t,n,r)))))}function o(e,n,t){return n.x<=Math.max(e.x,t.x)&&n.x>=Math.min(e.x,t.x)&&n.y<=Math.max(e.y,t.y)&&n.y>=Math.min(e.y,t.y)}function v(e){return 0<e?1:e<0?-1:0}function _(e,n){return E(e.prev,e,e.next)<0?0<=E(e,n,e.next)&&0<=E(e,e.prev,n):E(e,n,e.prev)<0||E(e,e.next,n)<0}function j(e,n){var t=new u(e.i,e.x,e.y),r=new u(n.i,n.x,n.y),x=e.next,i=n.prev;return(e.next=n).prev=e,(t.next=x).prev=t,(r.next=t).prev=r,(i.next=r).prev=i,r}function f(e,n,t,r){e=new u(e,n,t);return r?(e.next=r.next,(e.prev=r).next.prev=e,r.next=e):(e.prev=e).next=e,e}function C(e){e.next.prev=e.prev,e.prev.next=e.next,e.prevZ&&(e.prevZ.nextZ=e.nextZ),e.nextZ&&(e.nextZ.prevZ=e.prevZ)}function u(e,n,t){this.i=e,this.x=n,this.y=t,this.prev=null,this.next=null,this.z=0,this.prevZ=null,this.nextZ=null,this.steiner=!1}function d(e,n,t,r){for(var x=0,i=n,u=t-r;i<t;i+=r)x+=(e[u]-e[i])*(e[i+1]+e[u+1]),u=i;return x}n.exports=r,(n.exports.default=r).deviation=function(e,n,t,r){var x=n&&n.length,i=x?n[0]*t:e.length,u=Math.abs(d(e,0,i,t));if(x)for(var f=0,o=n.length;f<o;f++){var v=n[f]*t,p=f<o-1?n[f+1]*t:e.length;u-=Math.abs(d(e,v,p,t))}for(var y=0,f=0;f<r.length;f+=3){var a=r[f]*t,l=r[f+1]*t,h=r[f+2]*t;y+=Math.abs((e[a]-e[h])*(e[1+l]-e[1+a])-(e[a]-e[l])*(e[1+h]-e[1+a]))}return 0===u&&0===y?0:Math.abs((y-u)/u)},r.flatten=function(e){for(var n=e[0][0].length,t={vertices:[],holes:[],dimensions:n},r=0,x=0;x<e.length;x++){for(var i=0;i<e[x].length;i++)for(var u=0;u<n;u++)t.vertices.push(e[x][i][u]);0<x&&(r+=e[x-1].length,t.holes.push(r))}return t}},{}]},{},[1])(1)});
+
+})();
+</script>
+<style>
+:root{
+  --paper:#F4F8FB;
+  --panel:#FFFFFF;
+  --ink:#0E2A3F;
+  --ink-soft:#4A6478;
+  --line:#D4E2EC;
+  --line-strong:#A9C4D6;
+  --blue:#2D6A9F;
+  --accent:#F26419;
+  --accent-dark:#C84E0B;
+  --green:#1F7A4D;
+  --red:#C0392B;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+  --disp:"Archivo",sans-serif;
+  --r:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--disp);
+  font-size:15px;
+  line-height:1.5;
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size:42px 42px;
+}
+header{
+  border-bottom:2px solid var(--ink);
+  background:var(--panel);
+  padding:18px clamp(16px,4vw,48px) 0;
+}
+.head-top{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 24px;margin-bottom:14px}
+.brand{font-weight:900;font-size:clamp(22px,3.4vw,32px);letter-spacing:-.02em;font-stretch:80%;text-transform:uppercase}
+.brand em{font-style:normal;color:var(--accent)}
+.tagline{font-family:var(--mono);font-size:12px;color:var(--ink-soft)}
+/* builder switch */
+.builder-switch{display:flex;gap:0;margin-bottom:-2px}
+.bs{
+  font-family:var(--disp);font-weight:800;font-size:14px;text-transform:uppercase;font-stretch:85%;letter-spacing:.03em;
+  border:2px solid var(--ink);border-bottom:none;border-radius:10px 10px 0 0;
+  background:var(--paper);color:var(--ink-soft);padding:10px 22px;cursor:pointer;
+  margin-right:8px;position:relative;top:2px;
+}
+.bs .b-sub{display:block;font-family:var(--mono);font-size:10px;font-weight:400;text-transform:none;letter-spacing:0}
+.bs.on{background:var(--panel);color:var(--ink);top:0;padding-bottom:12px}
+.bs.on .b-sub{color:var(--accent-dark)}
+.bs:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.log-count{
+  display:inline-block;font-family:var(--mono);font-size:11px;font-weight:600;
+  background:var(--accent);color:#fff;border-radius:999px;padding:1px 8px;margin-left:6px;vertical-align:1px;
+}
+/* log panel */
+.log-search{
+  width:100%;font-family:var(--mono);font-size:13px;color:var(--ink);
+  border:1.5px solid var(--line-strong);border-radius:8px;padding:10px 12px;background:#fff;margin-bottom:14px;
+}
+.log-rows{display:flex;flex-direction:column;gap:10px;max-height:540px;overflow:auto}
+.log-row{
+  border:1.5px solid var(--line);border-radius:8px;padding:10px 12px;
+  display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;background:#FBFDFE;
+}
+.log-row .lr-name{font-weight:800;font-size:14px;font-stretch:85%}
+.log-row .lr-file{font-family:var(--mono);font-size:11px;color:var(--ink-soft);word-break:break-all}
+.log-row .lr-meta{font-family:var(--mono);font-size:11px;color:var(--ink-soft);grid-column:1}
+.lr-side{display:flex;flex-direction:column;align-items:flex-end;gap:6px;grid-row:1/span 3;grid-column:2}
+.kind-badge{
+  font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.06em;
+  border-radius:4px;padding:2px 7px;color:#fff;background:var(--blue);
+}
+.kind-badge.stl{background:var(--accent)}
+.kind-badge.named{background:var(--green)}
+.lr-load{
+  font-family:var(--mono);font-size:11px;border:1.5px solid var(--line-strong);border-radius:6px;
+  background:#fff;padding:4px 10px;cursor:pointer;color:var(--ink);
+}
+.lr-load:hover{border-color:var(--ink)}
+.log-empty{font-family:var(--mono);font-size:12px;color:var(--ink-soft);padding:20px 0;text-align:center}
+.log-foot{display:flex;justify-content:space-between;align-items:center;margin-top:14px}
+.log-clear{font-family:var(--mono);font-size:11px;color:var(--red);background:none;border:none;cursor:pointer;text-decoration:underline}
+/* name field */
+.name-row{padding:16px 18px 0}
+.name-row input{
+  width:100%;font-family:var(--mono);font-size:14px;color:var(--ink);
+  border:1.5px solid var(--line-strong);border-radius:8px;padding:9px 12px;background:#fff;
+}
+.name-row label{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);display:block;margin-bottom:5px}
+.name-preview{font-family:var(--mono);font-size:11px;color:var(--green);margin-top:6px;word-break:break-all}
+main{
+  max-width:1240px;margin:0 auto;
+  padding:28px clamp(16px,4vw,48px) 64px;
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;
+  align-items:start;
+}
+@media(max-width:900px){main{grid-template-columns:1fr}}
+.card{
+  background:var(--panel);
+  border:1.5px solid var(--ink);
+  border-radius:var(--r);
+  box-shadow:4px 4px 0 rgba(14,42,63,.12);
+}
+.card+.card,.card+details.card{margin-top:22px}
+.card-h{
+  padding:12px 18px;border-bottom:1.5px solid var(--ink);
+  display:flex;align-items:baseline;gap:12px;
+}
+.step{
+  font-family:var(--mono);font-size:11px;font-weight:600;color:var(--accent-dark);
+  text-transform:uppercase;letter-spacing:.08em;
+}
+.card-h h2{font-size:16px;font-weight:800;text-transform:uppercase;letter-spacing:.02em;font-stretch:85%}
+.card-b{padding:18px}
+
+/* mode picker */
+.modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+@media(max-width:480px){.modes{grid-template-columns:1fr}}
+.mode{
+  border:1.5px solid var(--line-strong);border-radius:var(--r);
+  background:var(--panel);cursor:pointer;padding:14px 12px;text-align:left;
+  font-family:var(--disp);transition:border-color .12s, box-shadow .12s;
+}
+.mode:hover{border-color:var(--ink)}
+.mode:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.mode .m-name{font-weight:800;font-size:15px;text-transform:uppercase;font-stretch:85%}
+.mode .m-sub{font-family:var(--mono);font-size:11px;color:var(--ink-soft);margin-top:3px}
+.mode .m-pic{height:34px;margin-bottom:8px;display:block}
+.mode.on{border-color:var(--accent);box-shadow:inset 0 0 0 1.5px var(--accent);background:#FFF7F1}
+.mode.on .m-name{color:var(--accent-dark)}
+
+/* chips */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.chip{
+  font-family:var(--mono);font-size:12px;font-weight:500;
+  border:1.5px solid var(--line-strong);border-radius:999px;
+  padding:6px 12px;background:var(--panel);cursor:pointer;color:var(--ink);
+}
+.chip:hover{border-color:var(--ink)}
+.chip:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+/* fields */
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.field label{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft)}
+.field input[type=number],.field select{
+  font-family:var(--mono);font-size:14px;color:var(--ink);
+  border:1.5px solid var(--line-strong);border-radius:8px;
+  padding:8px 10px;background:#fff;width:100%;
+}
+.field input:focus,.field select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,100,25,.18)}
+.hint{font-family:var(--mono);font-size:11px;color:var(--ink-soft);margin-top:10px}
+.hint b{color:var(--accent-dark);font-weight:600}
+
+/* toggles */
+.tog{display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;font-weight:600;padding:4px 0;user-select:none}
+.tog input{position:absolute;opacity:0;width:0;height:0}
+.tog .sw{
+  width:38px;height:22px;border-radius:999px;background:#CBD9E4;border:1.5px solid var(--line-strong);
+  position:relative;flex:none;transition:background .12s;
+}
+.tog .sw::after{
+  content:"";position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:50%;
+  background:#fff;border:1px solid var(--line-strong);transition:left .12s;
+}
+.tog input:checked+.sw{background:var(--green);border-color:var(--green)}
+.tog input:checked+.sw::after{left:18px}
+.tog input:focus-visible+.sw{outline:3px solid var(--accent);outline-offset:2px}
+.tog .t-sub{font-family:var(--mono);font-size:11px;color:var(--ink-soft);font-weight:400}
+.togs{display:flex;flex-direction:column;gap:6px;margin-top:14px}
+
+/* AI panel */
+#aiPanel textarea{
+  width:100%;min-height:130px;resize:vertical;
+  font-family:var(--mono);font-size:13px;line-height:1.6;color:var(--ink);
+  border:1.5px solid var(--line-strong);border-radius:8px;padding:12px;background:#fff;
+}
+.ai-actions{display:flex;align-items:center;gap:14px;margin-top:14px;flex-wrap:wrap}
+.ai-status{font-family:var(--mono);font-size:12px;color:var(--ink-soft)}
+.ai-status.err{color:var(--red)}
+.ai-note{
+  margin-top:16px;border-left:4px solid var(--accent);background:#FFF7F1;
+  border-radius:0 8px 8px 0;padding:12px 14px;font-size:14px;display:none;
+}
+.ai-note .n-h{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent-dark);margin-bottom:4px}
+.ex-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.spin{
+  width:16px;height:16px;border:2.5px solid var(--line-strong);border-top-color:var(--accent);
+  border-radius:50%;display:inline-block;vertical-align:-3px;animation:sp .8s linear infinite;
+}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* house defaults */
+.defaults summary{
+  cursor:pointer;list-style:none;display:flex;align-items:center;gap:10px;
+  padding:12px 18px;font-weight:800;font-size:13px;text-transform:uppercase;font-stretch:85%;
+}
+.defaults summary::-webkit-details-marker{display:none}
+.defaults summary .lock{font-family:var(--mono);font-size:10px;color:#fff;background:var(--green);border-radius:4px;padding:2px 7px;letter-spacing:.06em}
+.defaults summary .caret{margin-left:auto;font-family:var(--mono);color:var(--ink-soft);font-size:12px}
+.defaults[open] summary{border-bottom:1.5px solid var(--line)}
+.def-list{padding:14px 18px;display:grid;grid-template-columns:1fr 1fr;gap:8px 18px;font-family:var(--mono);font-size:12px}
+@media(max-width:480px){.def-list{grid-template-columns:1fr}}
+.def-list div{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed var(--line);padding-bottom:4px}
+.def-list span{color:var(--ink-soft)}
+.def-list b{font-weight:600}
+
+/* preview */
+.preview-wrap{position:sticky;top:20px}
+@media(max-width:900px){.preview-wrap{position:static}}
+.canvas{
+  padding:14px;background:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px),
+    #FBFDFE;
+  background-size:21px 21px;
+  border-bottom:1.5px solid var(--ink);
+  border-radius:var(--r) var(--r) 0 0;
+}
+.canvas svg{display:block;width:100%;height:auto;max-height:380px}
+.readout{
+  display:flex;flex-wrap:wrap;gap:8px 22px;
+  padding:12px 18px;font-family:var(--mono);font-size:12px;border-bottom:1.5px solid var(--line);
+}
+.readout div span{color:var(--ink-soft);display:block;font-size:10px;text-transform:uppercase;letter-spacing:.07em}
+.readout div b{font-weight:600;font-size:13px}
+
+/* output */
+.out-actions{display:flex;flex-wrap:wrap;gap:10px;padding:16px 18px 6px}
+.out-note{font-family:var(--mono);font-size:11px;color:var(--ink-soft);padding:0 18px 14px}
+.btn{
+  font-family:var(--disp);font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.03em;font-stretch:85%;
+  border-radius:8px;padding:11px 16px;cursor:pointer;border:1.5px solid var(--ink);
+  background:var(--panel);color:var(--ink);
+  box-shadow:3px 3px 0 rgba(14,42,63,.18);
+  transition:transform .08s, box-shadow .08s;
+}
+.btn:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 rgba(14,42,63,.2)}
+.btn:active{transform:translate(2px,2px);box-shadow:0 0 0}
+.btn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.btn.primary{background:var(--accent);border-color:var(--accent-dark);color:#fff;box-shadow:3px 3px 0 rgba(200,78,11,.45)}
+.btn[disabled]{opacity:.55;cursor:wait;transform:none}
+.settings-pre{
+  margin:0 18px 18px;background:#0E2A3F;color:#DCEAF4;border-radius:8px;
+  font-family:var(--mono);font-size:12px;line-height:1.7;
+  padding:16px;overflow:auto;max-height:300px;white-space:pre;
+}
+.settings-pre .sec{color:#F9A26C;font-weight:600}
+.settings-pre .chg{color:#7FE3AE}
+
+footer{
+  border-top:2px solid var(--ink);background:var(--panel);
+  padding:20px clamp(16px,4vw,48px) 36px;
+}
+footer h3{font-size:13px;text-transform:uppercase;font-weight:800;font-stretch:85%;margin-bottom:10px}
+footer ul{list-style:none;display:flex;flex-wrap:wrap;gap:8px 24px;font-family:var(--mono);font-size:12px}
+footer a{color:var(--blue)}
+.hide{display:none!important}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}.spin{animation-duration:2s}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="head-top">
+    <div class="brand">Holder <em>Generator</em></div>
+    <div class="tagline">team gridfinity · house defaults baked in · powered by gridfinity_extended_openscad</div>
+  </div>
+  <div class="builder-switch" role="tablist" aria-label="Builder mode">
+    <button class="bs on" id="tabUI" role="tab" aria-selected="true">Build with controls<span class="b-sub">pick sizes yourself</span></button>
+    <button class="bs" id="tabAI" role="tab" aria-selected="false">Describe it · AI<span class="b-sub">tell it your part, it configures</span></button>
+    <button class="bs" id="tabLog" role="tab" aria-selected="false">Log <span class="log-count" id="logCount">0</span><span class="b-sub">every named part &amp; download</span></button>
+  </div>
+</header>
+
+<main>
+  <!-- LEFT: config -->
+  <section id="leftCol">
+
+    <!-- Log panel -->
+    <div class="card hide" id="logPanel">
+      <div class="card-h"><span class="step">History</span><h2>Build log</h2></div>
+      <div class="card-b">
+        <div class="chips" id="logScope">
+          <button class="chip on" id="scopeMine">My log</button>
+          <button class="chip" id="scopeTeam">Team log · log.csv</button>
+        </div>
+        <input class="log-search" id="logSearch" type="search" placeholder="Search by name, type, size, person, date…">
+        <div class="log-rows" id="logRows"></div>
+        <div class="log-foot">
+          <span class="hint" style="margin:0">Named parts and downloads log automatically. <b>Load</b> reopens the exact settings, <b>↓</b> regenerates the file. The team log is append-only — it lives in <b>log.csv</b> in the repo and can't be cleared from here.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI panel -->
+    <div class="card hide" id="aiPanel">
+      <div class="card-h"><span class="step">AI build</span><h2>Describe your part</h2></div>
+      <div class="card-b">
+        <textarea id="aiText" placeholder="e.g. I need a holder for 10 interconnect v3 boards, 60 × 35 mm, 1.6 mm thick, standing on edge with finger room between them"></textarea>
+        <div class="ex-chips">
+          <button class="chip" data-ex="Holder for 10 PCBs, 60 × 35 mm, 1.6 mm thick, standing on edge with finger room between boards">10 boards on edge</button>
+          <button class="chip" data-ex="Flat pockets for 6 ESP32-S3 devkits lying down, each board is 70 × 26 mm and 8 mm tall with the headers">6 devkits, flat</button>
+          <button class="chip" data-ex="A divided bin for M3 hardware: 4 compartments across, 2 deep, with a label, about 2 wide by 1.5 deep">M3 hardware bin</button>
+          <button class="chip" data-ex="One big open bin for USB cables, roughly 2.5 by 3 units, taller than normal, label on the front">cable dump bin</button>
+          <button class="chip" data-ex="A baseplate for a drawer that's 230 mm wide and 320 mm deep, make it the sturdy kind">drawer baseplate</button>
+        </div>
+        <div class="ai-actions">
+          <button class="btn primary" id="aiGo">Configure it</button>
+          <span class="ai-status" id="aiStatus"></span>
+        </div>
+        <button class="chip" id="keyToggle" style="margin-top:14px">Running this outside claude.ai? Use your own API key →</button>
+        <div class="key-row" id="keyRow" hidden>
+          <div class="field" style="margin-top:10px">
+            <label for="apiKey">Anthropic API key</label>
+            <input id="apiKey" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-...">
+          </div>
+          <p class="hint">Held in memory only — never saved, never sent anywhere except api.anthropic.com, gone when you close the tab. Each person uses their own key from <b>console.anthropic.com</b>. Inside claude.ai you can leave this empty; it's handled automatically.</p>
+        </div>
+        <div class="ai-note" id="aiNote"><div class="n-h">How it sized this</div><div id="aiNoteText"></div></div>
+        <p class="hint" style="margin-top:14px">The result lands in the live preview on the right. Flip to <b>Build with controls</b> any time to fine-tune the exact same part.</p>
+      </div>
+    </div>
+
+    <!-- UI panels -->
+    <div class="card ui-only">
+      <div class="card-h"><span class="step">Step 1</span><h2>What's it holding?</h2></div>
+      <div class="card-b">
+        <div class="modes" role="radiogroup" aria-label="Holder type">
+          <button class="mode on" data-mode="screws" role="radio" aria-checked="true">
+            <svg class="m-pic" viewBox="0 0 60 34" aria-hidden="true"><rect x="4" y="4" width="52" height="26" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><line x1="30" y1="4" x2="30" y2="30" stroke="currentColor" stroke-width="2"/><circle cx="17" cy="17" r="4" fill="currentColor" opacity=".5"/><circle cx="43" cy="17" r="4" fill="currentColor" opacity=".5"/></svg>
+            <span class="m-name">Screws &amp; bits</span>
+            <span class="m-sub">divided bins, label up front</span>
+          </button>
+          <button class="mode" data-mode="cables" role="radio" aria-checked="false">
+            <svg class="m-pic" viewBox="0 0 60 34" aria-hidden="true"><rect x="4" y="4" width="52" height="26" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M14 24 q8-14 16 0 q8-14 16 0" fill="none" stroke="currentColor" stroke-width="2" opacity=".6"/></svg>
+            <span class="m-name">Cables &amp; bulk</span>
+            <span class="m-sub">big open bins, easy scoop</span>
+          </button>
+          <button class="mode" data-mode="pcbs" role="radio" aria-checked="false">
+            <svg class="m-pic" viewBox="0 0 60 34" aria-hidden="true"><rect x="4" y="4" width="52" height="26" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><line x1="14" y1="9" x2="14" y2="25" stroke="currentColor" stroke-width="3" opacity=".6"/><line x1="25" y1="9" x2="25" y2="25" stroke="currentColor" stroke-width="3" opacity=".6"/><line x1="36" y1="9" x2="36" y2="25" stroke="currentColor" stroke-width="3" opacity=".6"/><line x1="47" y1="9" x2="47" y2="25" stroke="currentColor" stroke-width="3" opacity=".6"/></svg>
+            <span class="m-name">PCBs</span>
+            <span class="m-sub">edge slots or flat pockets</span>
+          </button>
+          <button class="mode" data-mode="baseplate" role="radio" aria-checked="false">
+            <svg class="m-pic" viewBox="0 0 60 34" aria-hidden="true"><rect x="6" y="3" width="13" height="13" rx="3" fill="none" stroke="currentColor" stroke-width="2" opacity=".7"/><rect x="23" y="3" width="13" height="13" rx="3" fill="none" stroke="currentColor" stroke-width="2" opacity=".7"/><rect x="40" y="3" width="13" height="13" rx="3" fill="none" stroke="currentColor" stroke-width="2" opacity=".7"/><rect x="6" y="19" width="13" height="13" rx="3" fill="none" stroke="currentColor" stroke-width="2" opacity=".7"/><rect x="23" y="19" width="13" height="13" rx="3" fill="none" stroke="currentColor" stroke-width="2" opacity=".7"/><rect x="40" y="19" width="13" height="13" rx="3" fill="none" stroke="currentColor" stroke-width="2" opacity=".7"/></svg>
+            <span class="m-name">Baseplate</span>
+            <span class="m-sub">the grid the bins click into</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card ui-only">
+      <div class="card-h"><span class="step">Step 2</span><h2>Footprint</h2></div>
+      <div class="card-b">
+        <div class="chips" id="presetChips"></div>
+        <div class="row">
+          <div class="field"><label for="w">Width <span aria-hidden="true">· grid u</span></label><input id="w" type="number" step="0.5" min="0.5" max="6" value="1.5"></div>
+          <div class="field"><label for="d">Depth <span aria-hidden="true">· grid u</span></label><input id="d" type="number" step="0.5" min="0.5" max="6" value="1.5"></div>
+          <div class="field" id="hField"><label for="h">Height <span aria-hidden="true">· 7&nbsp;mm u</span></label><input id="h" type="number" step="1" min="2" max="20" value="6"></div>
+        </div>
+        <p class="hint" id="sizeHint">Half-grid sizes work because <b>half pitch</b> is on by default. 1 u = 42 mm footprint, 7 mm tall.</p>
+      </div>
+    </div>
+
+    <div class="card ui-only" id="detailCard">
+      <div class="card-h"><span class="step">Step 3</span><h2 id="detailTitle">Bin details</h2></div>
+      <div class="card-b" id="detailBody"></div>
+    </div>
+
+    <details class="card defaults">
+      <summary><span class="lock">Baked in</span> House defaults <span class="caret">show ▾</span></summary>
+      <div class="def-list">
+        <div><span>base screws</span><b>off</b></div>
+        <div><span>base magnets</span><b>off</b></div>
+        <div><span>sub pitch</span><b>half pitch</b></div>
+        <div><span>cup lip</span><b>minimum</b></div>
+        <div><span>lip notches</span><b>off</b></div>
+        <div><span>finger slide</span><b>rounded · r 20</b></div>
+        <div><span>label depth</span><b>14 mm</b></div>
+        <div><span>label style</span><b>normal</b></div>
+      </div>
+    </details>
+  </section>
+
+  <!-- RIGHT: preview + output -->
+  <section class="preview-wrap">
+    <div class="card">
+      <div class="canvas"><svg id="pv" viewBox="0 0 100 100" role="img" aria-label="Top-down preview of the holder"></svg></div>
+      <div class="readout" id="readout"></div>
+      <div class="name-row">
+        <label for="partLabel">Part name · optional — naming it logs it</label>
+        <input id="partLabel" type="text" autocomplete="off" placeholder="e.g. Interconnect v4">
+        <div class="name-preview" id="namePreview"></div>
+      </div>
+      <div class="out-actions">
+        <button class="btn primary" id="dlStl">Download STL</button>
+        <button class="btn" id="dlScad">.scad</button>
+        <button class="btn" id="dlJson">.json</button>
+        <button class="btn" id="copyBtn">Copy settings</button>
+      </div>
+      <p class="out-note">STL is generated right here and prints as-is — the minimum lip is approximated flat. For the exact lip profile, render the .scad with the <a href="https://github.com/ostat/gridfinity_extended_openscad" target="_blank" rel="noopener">gridfinity_extended</a> repo.</p>
+      <pre class="settings-pre" id="settingsPre" aria-label="Generated settings"></pre>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <h3>Other tools we use</h3>
+  <ul>
+    <li><a href="https://gridflock.yawk.at/" target="_blank" rel="noopener">GridFlock — baseplates</a></li>
+    <li><a href="https://makerworld.com/en/models/481168-gridfinity-extended-official" target="_blank" rel="noopener">Gridfinity Extended on MakerWorld</a></li>
+    <li><a href="https://outline.georgs.lv/" target="_blank" rel="noopener">Outline — cavity from photo</a></li>
+    <li><a href="https://www.tooltrace.ai/" target="_blank" rel="noopener">ToolTrace</a></li>
+    <li><a href="https://gridfinity.tools/rebase/" target="_blank" rel="noopener">Rebase</a></li>
+    <li><a href="https://gridfinity.liorbk.com/" target="_blank" rel="noopener">liorbk tracer</a></li>
+    <li><a href="https://github.com/ostat/gridfinity_extended_openscad" target="_blank" rel="noopener">gridfinity_extended_openscad repo</a></li>
+  </ul>
+</footer>
+
+<script>
+"use strict";
+/* ================= TEAM LOG =================
+   TEAM_LOG_URL — your Apps Script web-app URL. Every download/named part
+     is POSTed here and the script COMMITS it as a row in log.csv in this
+     repo. Setup: team-log-setup.md. Leave empty = local-only logging.
+   LOG_CSV_URL — where to READ the team log from. Leave empty to fetch
+     "log.csv" next to this page (works on GitHub Pages). Set to a raw
+     GitHub URL if hosting the page elsewhere.
+   The team log is append-only and lives in git history — not clearable
+   from the website.                                                      */
+const TEAM_LOG_URL = "";
+const LOG_CSV_URL  = "";
+/* ============================================ */
+const $ = s => document.querySelector(s);
+const state = {
+  mode:"screws",
+  w:1.5, d:1.5, h:6,
+  divX:1, divY:1, label:true,
+  cableDiv:1, cableLabel:true, slide:true,
+  pcbStyle:"slots",
+  slotLen:35, slotWid:2,
+  gap:4, clearance:0.25,
+  countMode:"auto", nx:0, ny:0,
+  holeDepth:0, pcbLabel:false,
+  plateStyle:"minimal", plateWeight:false
+};
+
+const PRESETS = {
+  screws:[
+    {n:"1.5×1", w:1.5,d:1,h:6},
+    {n:"1.5×1.5 · Nate's", w:1.5,d:1.5,h:6},
+    {n:"1.5×2", w:1.5,d:2,h:6},
+    {n:"1.5×3", w:1.5,d:3,h:6},
+  ],
+  cables:[
+    {n:"2×2", w:2,d:2,h:8},
+    {n:"2.5×3 · h10", w:2.5,d:3,h:10},
+    {n:"2.5×4 · spools", w:2.5,d:4,h:10},
+  ],
+  pcbs:[
+    {n:"1.5×1.5", w:1.5,d:1.5,h:6},
+    {n:"2×2", w:2,d:2,h:6},
+    {n:"2×3 · deep", w:2,d:3,h:9},
+  ],
+  baseplate:[
+    {n:"3×4 · Clickfinity", w:4,d:3},
+    {n:"4×4", w:4,d:4},
+    {n:"5×6 · sheetpan", w:6,d:5},
+  ]
+};
+
+/* ========== view switch (Controls / AI / Log) ========== */
+function setBuilder(view){ // 'ui' | 'ai' | 'log'
+  const map={ui:$("#tabUI"),ai:$("#tabAI"),log:$("#tabLog")};
+  for(const k in map){ map[k].classList.toggle("on",k===view); map[k].setAttribute("aria-selected",String(k===view)); }
+  document.querySelectorAll(".ui-only").forEach(el=>el.classList.toggle("hide",view!=="ui"));
+  $("#aiPanel").classList.toggle("hide",view!=="ai");
+  $("#logPanel").classList.toggle("hide",view!=="log");
+  if(view==="log") renderLog();
+}
+$("#tabUI").addEventListener("click",()=>setBuilder("ui"));
+$("#tabAI").addEventListener("click",()=>setBuilder("ai"));
+$("#tabLog").addEventListener("click",()=>setBuilder("log"));
+
+/* ========== mode picker ========== */
+function setModeButtons(){
+  document.querySelectorAll(".mode").forEach(x=>{
+    const on = x.dataset.mode===state.mode;
+    x.classList.toggle("on",on); x.setAttribute("aria-checked",String(on));
+  });
+}
+document.querySelectorAll(".mode").forEach(b=>{
+  b.addEventListener("click",()=>{
+    state.mode = b.dataset.mode;
+    const p = PRESETS[state.mode][state.mode==="screws"?1:0];
+    Object.assign(state,{w:p.w,d:p.d});
+    if(p.h!==undefined) state.h=p.h;
+    setModeButtons(); applyModeFields(); syncSize(); buildPresets(); buildDetails(); render();
+  });
+});
+function applyModeFields(){
+  const bp = state.mode==="baseplate";
+  $("#hField").classList.toggle("hide",bp);
+  $("#w").step = bp?1:0.5; $("#d").step = bp?1:0.5;
+  $("#w").min = bp?1:0.5;  $("#d").min = bp?1:0.5;
+  $("#w").max = bp?8:6;    $("#d").max = bp?8:6;
+  $("#sizeHint").innerHTML = bp
+    ? `Baseplates are whole units only — 1 u = 42 mm. Half-pitch bins still land anywhere on a standard plate.`
+    : `Half-grid sizes work because <b>half pitch</b> is on by default. 1 u = 42 mm footprint, 7 mm tall.`;
+  if(bp){ state.w=Math.max(1,Math.round(state.w)); state.d=Math.max(1,Math.round(state.d)); }
+}
+
+/* ========== presets / size ========== */
+function buildPresets(){
+  const box = $("#presetChips"); box.innerHTML="";
+  PRESETS[state.mode].forEach(p=>{
+    const c = document.createElement("button");
+    c.className="chip"; c.textContent=p.n;
+    const hMatch = p.h===undefined || p.h===state.h;
+    if(p.w===state.w && p.d===state.d && hMatch) c.classList.add("on");
+    c.addEventListener("click",()=>{
+      Object.assign(state,{w:p.w,d:p.d});
+      if(p.h!==undefined) state.h=p.h;
+      syncSize(); buildPresets(); render();
+    });
+    box.appendChild(c);
+  });
+}
+function syncSize(){ $("#w").value=state.w; $("#d").value=state.d; $("#h").value=state.h; }
+["w","d","h"].forEach(k=>{
+  $("#"+k).addEventListener("input",e=>{
+    let v = parseFloat(e.target.value);
+    if(!isNaN(v) && v>0){
+      if(state.mode==="baseplate" && k!=="h") v=Math.max(1,Math.round(v));
+      state[k]=v; buildPresets(); render();
+    }
+  });
+});
+
+/* ========== detail panels ========== */
+function fld(label,id,val,step,min,max){
+  return `<div class="field"><label for="${id}">${label}</label>
+  <input id="${id}" type="number" step="${step}" min="${min}" max="${max}" value="${val}"></div>`;
+}
+function tog(id,checked,name,sub){
+  return `<label class="tog"><input type="checkbox" id="${id}" ${checked?"checked":""}><span class="sw"></span>
+  <span>${name} <span class="t-sub">${sub||""}</span></span></label>`;
+}
+function buildDetails(){
+  const body = $("#detailBody"), title=$("#detailTitle");
+  if(state.mode==="screws"){
+    title.textContent = "Compartments & label";
+    body.innerHTML = `
+      <div class="row">
+        ${fld("Dividers across (left↔right)","divX",state.divX,1,1,8)}
+        ${fld("Dividers deep (front↔back)","divY",state.divY,1,1,8)}
+      </div>
+      <div class="togs">${tog("label",state.label,"Front label shelf","14 mm deep, house standard")}</div>
+      <p class="hint">Values are compartment counts: 2 across × 1 deep gives two side-by-side pockets.</p>`;
+    $("#divX").addEventListener("input",e=>{state.divX=clampInt(e.target.value,1,8);render()});
+    $("#divY").addEventListener("input",e=>{state.divY=clampInt(e.target.value,1,8);render()});
+    $("#label").addEventListener("change",e=>{state.label=e.target.checked;render()});
+  }
+  else if(state.mode==="cables"){
+    title.textContent = "Bin details";
+    body.innerHTML = `
+      <div class="row">${fld("Compartments across","cableDiv",state.cableDiv,1,1,4)}</div>
+      <div class="togs">
+        ${tog("cableLabel",state.cableLabel,"Front label shelf","14 mm deep")}
+        ${tog("slide",state.slide,"Finger-slide scoop","rounded · r 20 — turn off for very tall bins")}
+      </div>`;
+    $("#cableDiv").addEventListener("input",e=>{state.cableDiv=clampInt(e.target.value,1,4);render()});
+    $("#cableLabel").addEventListener("change",e=>{state.cableLabel=e.target.checked;render()});
+    $("#slide").addEventListener("change",e=>{state.slide=e.target.checked;render()});
+  }
+  else if(state.mode==="baseplate"){
+    title.textContent = "Plate style";
+    body.innerHTML = `
+      <div class="chips">
+        <button class="chip ${state.plateStyle==="minimal"?"on":""}" id="plMin">Minimal · skeleton, fast print</button>
+        <button class="chip ${state.plateStyle==="solid"?"on":""}" id="plSolid">Solid · full floor, heavier</button>
+      </div>
+      ${state.plateStyle==="solid"?`<div class="togs">${tog("plateWeight",state.plateWeight,"Weight cavities","pockets for steel weights (.scad only)")}</div>`:""}
+      <p class="hint">Magnets and screws stay <b>off</b>, house standard. For odd plate shapes (sheet pans, drawers with radii), use <b>GridFlock</b> — link in the footer.</p>`;
+    $("#plMin").addEventListener("click",()=>{state.plateStyle="minimal";buildDetails();render()});
+    $("#plSolid").addEventListener("click",()=>{state.plateStyle="solid";buildDetails();render()});
+    if(state.plateStyle==="solid"){
+      $("#plateWeight").addEventListener("change",e=>{state.plateWeight=e.target.checked;render()});
+    }
+  }
+  else {
+    title.textContent = "Slot layout";
+    body.innerHTML = `
+      <div class="chips">
+        <button class="chip ${state.pcbStyle==="slots"?"on":""}" id="stSlots">Edge slots · boards on edge</button>
+        <button class="chip ${state.pcbStyle==="pockets"?"on":""}" id="stPockets">Flat pockets · boards lying down</button>
+      </div>
+      <div class="row">
+        ${fld("Slot length · mm","slotLen",state.slotLen,0.1,5,200)}
+        ${fld("Slot width · mm","slotWid",state.slotWid,0.1,0.8,100)}
+        ${fld("Board-to-board gap · mm","gap",state.gap,0.5,1,20)}
+        ${fld("Clearance · mm","clearance",state.clearance,0.05,0,1)}
+      </div>
+      <div class="row" style="margin-top:12px">
+        <div class="field"><label for="countMode">Slot count</label>
+          <select id="countMode">
+            <option value="auto" ${state.countMode==="auto"?"selected":""}>Auto — fill the bin</option>
+            <option value="fixed" ${state.countMode==="fixed"?"selected":""}>Fixed count</option>
+          </select>
+        </div>
+        ${state.countMode==="fixed"?fld("Count across","nx",state.nx||1,1,1,30)+fld("Count deep","ny",state.ny||1,1,1,30):""}
+        ${fld("Slot depth · mm (0 = full bin)","holeDepth",state.holeDepth,0.5,0,120)}
+      </div>
+      <div class="togs">${tog("pcbLabel",state.pcbLabel,"Front label shelf","usually off for PCB blocks")}</div>
+      <p class="hint">Set a slot depth and the bin <b>height auto-sizes</b>: depth + 2 mm floor + the gridfinity base, rounded up to 7 mm units. At 0, slots run the full height you picked in Step 2. Interconnect lesson learned: slot width ≥ <b>2 mm</b>, gap ≥ <b>4 mm</b> for finger room.</p>`;
+    $("#stSlots").addEventListener("click",()=>{state.pcbStyle="slots";state.slotLen=35;state.slotWid=2;buildDetails();render()});
+    $("#stPockets").addEventListener("click",()=>{state.pcbStyle="pockets";state.slotLen=33.8;state.slotWid=17.5;buildDetails();render()});
+    ["slotLen","slotWid","gap","clearance"].forEach(k=>{
+      $("#"+k).addEventListener("input",e=>{const v=parseFloat(e.target.value);if(!isNaN(v)&&v>=0){state[k]=v;render()}});
+    });
+    $("#holeDepth").addEventListener("input",e=>{
+      const v=parseFloat(e.target.value);
+      if(!isNaN(v)&&v>=0){
+        state.holeDepth=v;
+        if(v>0){
+          // auto height: slot depth + 2 mm structural floor + 4.75 mm gridfinity base, rounded up to 7 mm units
+          state.h=Math.max(3, Math.ceil((v+2+4.75)/7));
+          syncSize();
+        }
+        render();
+      }
+    });
+    $("#countMode").addEventListener("change",e=>{state.countMode=e.target.value;buildDetails();render()});
+    if(state.countMode==="fixed"){
+      $("#nx").addEventListener("input",e=>{state.nx=clampInt(e.target.value,1,30);render()});
+      $("#ny").addEventListener("input",e=>{state.ny=clampInt(e.target.value,1,30);render()});
+    }
+  }
+}
+function clampInt(v,a,b){v=parseInt(v,10);if(isNaN(v))return a;return Math.max(a,Math.min(b,v))}
+
+/* ========== geometry helpers (shared by preview + STL) ========== */
+function labelOn(){
+  if(state.mode==="baseplate") return false;
+  return state.mode==="screws"?state.label : state.mode==="cables"?state.cableLabel : state.pcbLabel;
+}
+function innerMM(){ return { w: state.w*42 - 8, d: state.d*42 - 8 - (labelOn()?14:0) }; }
+function pcbLayout(){
+  const inn = innerMM();
+  const L = state.slotLen + state.clearance*2, W = state.slotWid + state.clearance*2, g = state.gap;
+  let nx, ny;
+  if(state.countMode==="fixed"){ nx=state.nx||1; ny=state.ny||1; }
+  else {
+    nx = Math.max(1, Math.floor((inn.w + g) / (L + g)));
+    ny = Math.max(1, Math.floor((inn.d + g) / (W + g)));
+  }
+  const fits = (nx*L + (nx-1)*g) <= inn.w + 0.01 && (ny*W + (ny-1)*g) <= inn.d + 0.01;
+  return {nx, ny, L, W, g, fits, total: nx*ny};
+}
+
+function slotDims(){ // actual slot depth after structural clamp (2 mm floor above the 4.75 mm base)
+  const H=state.h*7, minFloor=4.75+2;
+  const sd = state.holeDepth>0 ? Math.min(state.holeDepth, H-minFloor) : H-minFloor;
+  return { sd, clamped: state.holeDepth>0 && state.holeDepth > H-minFloor };
+}
+
+/* ========== preview ========== */
+function render(){
+  buildPresets();
+  drawPreview();
+  drawReadout();
+  $("#settingsPre").innerHTML = settingsHTML();
+  if(typeof updateNamePreview==="function") updateNamePreview();
+}
+function drawPreview(){
+  const svg = $("#pv");
+  const Wmm = state.w*42, Dmm = state.d*42;
+  const pad = 26;
+  const vw = Wmm + pad*2, vh = Dmm + pad*2 + 10;
+  svg.setAttribute("viewBox",`0 0 ${vw} ${vh}`);
+  let s = "";
+  s += `<g stroke="#A9C4D6" stroke-width="0.5">`;
+  for(let x=0;x<=Math.ceil(state.w);x++) s+=`<line x1="${pad+x*42}" y1="${pad-8}" x2="${pad+x*42}" y2="${pad+Dmm+8}"/>`;
+  for(let y=0;y<=Math.ceil(state.d);y++) s+=`<line x1="${pad-8}" y1="${pad+y*42}" x2="${pad+Wmm+8}" y2="${pad+y*42}"/>`;
+  s += `</g>`;
+  s += `<rect x="${pad}" y="${pad}" width="${Wmm}" height="${Dmm}" rx="4" fill="#FFFFFF" stroke="#0E2A3F" stroke-width="1.6"/>`;
+  if(state.mode==="baseplate"){
+    for(let i=0;i<Math.round(state.w);i++)for(let j=0;j<Math.round(state.d);j++){
+      const cx=pad+i*42, cy=pad+j*42;
+      s += `<rect x="${cx+1}" y="${cy+1}" width="40" height="40" rx="3.8" fill="${state.plateStyle==="solid"?"#EAF1F6":"none"}" stroke="#0E2A3F" stroke-width="0.9"/>`;
+      s += `<rect x="${cx+3.2}" y="${cy+3.2}" width="35.6" height="35.6" rx="1.8" fill="none" stroke="#A9C4D6" stroke-width="0.7"/>`;
+    }
+    s += dim(pad, pad+Dmm+13, pad+Wmm, pad+Dmm+13, `${(Wmm).toFixed(0)} mm · ${state.w} u`, "h");
+    s += dim(pad+Wmm+13, pad, pad+Wmm+13, pad+Dmm, `${(Dmm).toFixed(0)} mm · ${state.d} u`, "v");
+    svg.innerHTML = s;
+    return;
+  }
+  s += `<rect x="${pad+2.4}" y="${pad+2.4}" width="${Wmm-4.8}" height="${Dmm-4.8}" rx="2.6" fill="none" stroke="#A9C4D6" stroke-width="0.7"/>`;
+
+  let topInset = pad+3, botLimit = pad+Dmm-3;
+  if(labelOn()){
+    s += `<rect x="${pad+2.4}" y="${pad+2.4}" width="${Wmm-4.8}" height="14" fill="#FDE6D6" stroke="#F26419" stroke-width="0.8"/>`;
+    s += `<text x="${pad+Wmm/2}" y="${pad+11.5}" font-family="IBM Plex Mono" font-size="5.6" fill="#C84E0B" text-anchor="middle">LABEL · 14</text>`;
+    topInset = pad+16.4;
+  }
+  if(state.mode!=="pcbs" && (state.mode==="screws" || state.slide)){
+    s += `<path d="M ${pad+4} ${pad+Dmm-3} q ${Wmm/2-4} -10 ${Wmm-8} 0" fill="none" stroke="#2D6A9F" stroke-width="0.9" stroke-dasharray="2.5 2"/>`;
+    s += `<text x="${pad+Wmm/2}" y="${pad+Dmm-6}" font-family="IBM Plex Mono" font-size="5" fill="#2D6A9F" text-anchor="middle">scoop</text>`;
+  }
+  if(state.mode==="screws" || state.mode==="cables"){
+    const cx = state.mode==="screws"?state.divX:state.cableDiv;
+    const cy = state.mode==="screws"?state.divY:1;
+    s += `<g stroke="#0E2A3F" stroke-width="1.1">`;
+    for(let i=1;i<cx;i++){const x=pad+2.4+(Wmm-4.8)*i/cx; s+=`<line x1="${x}" y1="${topInset}" x2="${x}" y2="${botLimit}"/>`}
+    for(let i=1;i<cy;i++){const y=topInset+(botLimit-topInset)*i/cy; s+=`<line x1="${pad+3}" y1="${y}" x2="${pad+Wmm-3}" y2="${y}"/>`}
+    s += `</g>`;
+  } else {
+    const lay = pcbLayout();
+    const totW = lay.nx*lay.L + (lay.nx-1)*lay.g;
+    const totD = lay.ny*lay.W + (lay.ny-1)*lay.g;
+    const ox = pad + (Wmm - totW)/2;
+    const regionTop = labelOn()? pad+16.4 : pad+4;
+    const regionBot = pad+Dmm-4;
+    const oy = regionTop + ((regionBot-regionTop) - totD)/2;
+    const col = lay.fits ? "#1F7A4D" : "#C0392B";
+    for(let i=0;i<lay.nx;i++)for(let j=0;j<lay.ny;j++){
+      s += `<rect x="${ox+i*(lay.L+lay.g)}" y="${oy+j*(lay.W+lay.g)}" width="${lay.L}" height="${lay.W}" rx="${Math.min(1.2,lay.W/3)}" fill="${col}" opacity="0.78"/>`;
+    }
+  }
+  s += dim(pad, pad+Dmm+13, pad+Wmm, pad+Dmm+13, `${(Wmm).toFixed(0)} mm · ${state.w} u`, "h");
+  s += dim(pad+Wmm+13, pad, pad+Wmm+13, pad+Dmm, `${(Dmm).toFixed(0)} mm · ${state.d} u`, "v");
+  svg.innerHTML = s;
+}
+function dim(x1,y1,x2,y2,txt,o){
+  const tickA = o==="h"?`M ${x1} ${y1-3} L ${x1} ${y1+3} M ${x2} ${y2-3} L ${x2} ${y2+3}`:`M ${x1-3} ${y1} L ${x1+3} ${y1} M ${x2-3} ${y2} L ${x2+3} ${y2}`;
+  let t;
+  if(o==="h") t = `<text x="${(x1+x2)/2}" y="${y1-2.5}" font-family="IBM Plex Mono" font-size="5.4" fill="#0E2A3F" text-anchor="middle">${txt}</text>`;
+  else t = `<text x="${x1+3}" y="${(y1+y2)/2}" font-family="IBM Plex Mono" font-size="5.4" fill="#0E2A3F" text-anchor="middle" transform="rotate(90 ${x1+3} ${(y1+y2)/2})">${txt}</text>`;
+  return `<g stroke="#0E2A3F" stroke-width="0.6"><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/><path d="${tickA}"/></g>${t}`;
+}
+function drawReadout(){
+  const r = $("#readout");
+  const Wmm=(state.w*42).toFixed(0), Dmm=(state.d*42).toFixed(0), Hmm=(state.h*7).toFixed(0);
+  if(state.mode==="baseplate"){
+    const T = state.plateStyle==="solid"?6.1:4.7;
+    r.innerHTML = `
+      <div><span>grid</span><b>${Math.round(state.w)} × ${Math.round(state.d)} cells</b></div>
+      <div><span>outer mm</span><b>${Wmm} × ${Dmm} × ${T}</b></div>
+      <div><span>style</span><b>${state.plateStyle}</b></div>`;
+    return;
+  }
+  let extra = "";
+  if(state.mode==="pcbs"){
+    const lay = pcbLayout();
+    const sdi = slotDims();
+    extra = `<div><span>boards</span><b style="color:${lay.fits?'var(--green)':'var(--red)'}">${lay.total}${lay.fits?"":" — too tight!"}</b></div>
+             <div><span>slot</span><b>${state.slotLen}×${state.slotWid} +${state.clearance}</b></div>
+             <div><span>slot depth</span><b style="${sdi.clamped?'color:var(--red)':''}">${sdi.sd.toFixed(1)} mm${sdi.clamped?" (capped)":""}</b></div>`;
+  } else {
+    const cx = state.mode==="screws"?state.divX:state.cableDiv;
+    const cy = state.mode==="screws"?state.divY:1;
+    extra = `<div><span>compartments</span><b>${cx*cy}</b></div>`;
+  }
+  r.innerHTML = `
+    <div><span>footprint</span><b>${state.w} × ${state.d} u</b></div>
+    <div><span>outer mm</span><b>${Wmm} × ${Dmm} × ${Hmm}</b></div>
+    ${extra}`;
+}
+
+/* ========== scad / settings output ========== */
+function params(){
+  const p = [];
+  const push=(k,v,c)=>p.push({k,v,c});
+  if(state.mode==="baseplate"){
+    const w=Math.round(state.w), d=Math.round(state.d);
+    push("Width",`[${w}, 0]`);
+    push("Depth",`[${d}, 0]`);
+    push("Enable_Magnets","false","house");
+    push("Corner_Screw_Enabled","false","house");
+    if(state.plateStyle==="solid"){
+      push("outer_Height","6.4","solid plate");
+      if(state.plateWeight) push("Enable_Weight","true","steel weight pockets");
+    }
+    return p;
+  }
+  push("width",`[${state.w}, 0]`);
+  push("depth",`[${state.d}, 0]`);
+  push("height",`[${state.h}, 0]`);
+  push("enable_screws","false","house");
+  push("enable_magnets","false","house");
+  push("sub_pitch","2","house · half pitch");
+  push("lip_style",`"minimum"`,"house");
+  push("lip_top_notches","false","house");
+  const lab = labelOn();
+  push("label_style", lab?`"normal"`:`"disabled"`);
+  if(lab) push("label_size","[0, 14, 0, 0.6]","house · depth 14");
+  if(state.mode==="pcbs"){
+    push("fingerslide",`"none"`);
+  } else if(state.mode==="cables" && !state.slide){
+    push("fingerslide",`"none"`);
+  } else {
+    push("fingerslide",`"rounded"`,"house");
+    push("fingerslide_radius","20","house");
+  }
+  if(state.mode==="screws"){
+    push("vertical_chambers",String(state.divX));
+    push("horizontal_chambers",String(state.divY));
+  }
+  if(state.mode==="cables"){
+    push("vertical_chambers",String(state.cableDiv));
+  }
+  if(state.mode==="pcbs"){
+    const lay = pcbLayout();
+    push("itemholder_known_tools",`"custom"`);
+    push("itemholder_hole_base_shape",`"square"`);
+    push("itemholder_hole_size",`[${state.slotLen}, ${state.slotWid}]`);
+    push("itemholder_hole_diameter","1","corner radius");
+    push("itemholder_hole_clearance",String(state.clearance));
+    push("itemholder_hole_spacing",String(state.gap));
+    push("itemholder_hole_gridx", state.countMode==="fixed"?String(state.nx||1):"0", state.countMode==="auto"?`auto → ${lay.nx}`:undefined);
+    push("itemholder_hole_gridy", state.countMode==="fixed"?String(state.ny||1):"0", state.countMode==="auto"?`auto → ${lay.ny}`:undefined);
+    push("itemholder_hole_depth",String(state.holeDepth), state.holeDepth===0?"auto":undefined);
+    push("itemholder_hole_chamfer","1","easier board entry");
+    push("itemholder_grid_style",`"square"`);
+    push("itemholder_auto_bin_height",`"disabled"`,"height set above");
+  }
+  return p;
+}
+function baseFile(){
+  if(state.mode==="baseplate") return "gridfinity_baseplate.scad";
+  return state.mode==="pcbs" ? "gridfinity_item_holder.scad" : "gridfinity_basic_cup.scad";
+}
+function partName(){
+  if(state.mode==="baseplate") return `baseplate_${Math.round(state.w)}x${Math.round(state.d)}_${state.plateStyle}`;
+  const sz = `${state.w}x${state.d}x${state.h}`;
+  return state.mode==="screws"?`screw_bin_${sz}`:state.mode==="cables"?`cable_bin_${sz}`:`pcb_holder_${sz}`;
+}
+function settingsHTML(){
+  const esc = s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+  let out = `<span class="sec">// ${partName()} — for ${baseFile()}</span>\n`;
+  out += `<span class="sec">// paste into the MakerWorld customizer or OpenSCAD</span>\n\n`;
+  params().forEach(({k,v,c})=>{
+    out += `${esc(k)} = ${esc(v)};`;
+    if(c) out += `  <span class="chg">// ${esc(c)}</span>`;
+    out += "\n";
+  });
+  return out;
+}
+function scadText(){
+  let t = `// ${partName()}\n// Generated by the team Holder Generator — house defaults baked in.\n`;
+  t += `// Drop this file into your clone of:\n//   https://github.com/ostat/gridfinity_extended_openscad\n`;
+  t += `// (same folder as ${baseFile()}), then open it in OpenSCAD and render.\n\n`;
+  t += `include <${baseFile()}>\n\n// ---- overrides ----\n`;
+  params().forEach(({k,v,c})=>{ t += `${k} = ${v};${c?"  // "+c:""}\n`; });
+  return t;
+}
+function jsonText(){
+  const set = {};
+  params().forEach(({k,v})=>{ set[k] = v.replace(/^"|"$/g,""); });
+  return JSON.stringify({fileFormatVersion:"1",parameterSets:{[partName()]:set}},null,2);
+}
+function download(name, data, type){
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([data],{type}));
+  a.download = name; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+}
+
+/* ========== naming & capacity ========== */
+let partLabel = "";
+function capacityText(){
+  if(state.mode==="pcbs"){ const l=pcbLayout(); return `${l.total} boards`; }
+  if(state.mode==="baseplate") return `${Math.round(state.w)*Math.round(state.d)} cells`;
+  const n = state.mode==="screws" ? state.divX*state.divY : state.cableDiv;
+  return n>1 ? `${n} compartments` : "";
+}
+function sanitizeName(s){ return s.replace(/[\/\\:*?"<>|#%&{}]+/g,"").replace(/\s+/g," ").trim(); }
+function fileBase(){
+  const nm = sanitizeName(partLabel);
+  if(!nm) return partName();
+  const cap = capacityText();
+  if(state.mode==="baseplate") return `${nm} gridfinity baseplate ${Math.round(state.w)}x${Math.round(state.d)}`;
+  if(state.mode==="pcbs")      return `${nm} gridfinity holder for ${cap}`;
+  return cap ? `${nm} gridfinity bin for ${cap}` : `${nm} gridfinity bin ${state.w}x${state.d}x${state.h}`;
+}
+function updateNamePreview(){
+  const p = $("#namePreview");
+  p.textContent = sanitizeName(partLabel) ? `→ downloads as: ${fileBase()}.stl` : "";
+}
+
+/* ========== build log ========== */
+let logEntries = [];
+const logStore = {
+  async load(){
+    try{
+      if(typeof window!=="undefined" && window.storage && window.storage.get){
+        const r = await window.storage.get("holder-log");
+        if(r && r.value) return JSON.parse(r.value);
+      }
+    }catch(e){}
+    try{
+      const v = localStorage.getItem("holder-log");
+      if(v) return JSON.parse(v);
+    }catch(e){}
+    return [];
+  },
+  async save(entries){
+    const s = JSON.stringify(entries.slice(0,300)); // cap the log
+    try{
+      if(typeof window!=="undefined" && window.storage && window.storage.set){
+        await window.storage.set("holder-log", s); return;
+      }
+    }catch(e){}
+    try{ localStorage.setItem("holder-log", s); }catch(e){}
+  }
+};
+function snapshot(){
+  const keys=["mode","w","d","h","divX","divY","label","cableDiv","cableLabel","slide",
+    "pcbStyle","slotLen","slotWid","gap","clearance","countMode","nx","ny","holeDepth","pcbLabel",
+    "plateStyle","plateWeight"];
+  const s={}; keys.forEach(k=>s[k]=state[k]); return s;
+}
+function sizeText(){
+  return state.mode==="baseplate" ? `${Math.round(state.w)}×${Math.round(state.d)}` : `${state.w}×${state.d}×${state.h}`;
+}
+let userName = null;
+function getUser(){
+  if(userName) return userName;
+  try{ userName = localStorage.getItem("holder-user"); }catch(e){}
+  if(!userName){
+    try{
+      userName = (prompt("Name or initials for the team log?") || "anon").slice(0,24);
+      localStorage.setItem("holder-user", userName);
+    }catch(e){ userName = "anon"; }
+  }
+  return userName;
+}
+function addLog(kind, file){
+  const top = logEntries[0];
+  if(top && top.kind===kind && top.file===file && Date.now()-top.t < 4000) return; // de-dupe double clicks
+  const entry = {
+    t: Date.now(),
+    kind,                                  // "STL" | "SCAD" | "JSON" | "NAMED"
+    name: sanitizeName(partLabel) || null,
+    file,
+    mode: state.mode,
+    size: sizeText(),
+    cap: capacityText() || null,
+    snap: snapshot()
+  };
+  logEntries.unshift(entry);
+  logStore.save(logEntries);
+  $("#logCount").textContent = logEntries.length;
+  if(TEAM_LOG_URL){
+    try{
+      fetch(TEAM_LOG_URL, {
+        method:"POST", mode:"no-cors",
+        headers:{"Content-Type":"text/plain"},
+        body: JSON.stringify({...entry, by:getUser()})
+      });
+    }catch(e){}
+  }
+  if(!$("#logPanel").classList.contains("hide")) renderLog();
+}
+let logScope = "mine", teamEntries = [];
+function parseCSV(text){
+  const rows=[]; let row=[], cur="", inQ=false;
+  for(let i=0;i<text.length;i++){
+    const ch=text[i];
+    if(inQ){
+      if(ch==='"'){ if(text[i+1]==='"'){cur+='"';i++;} else inQ=false; }
+      else cur+=ch;
+    } else {
+      if(ch==='"') inQ=true;
+      else if(ch===","){ row.push(cur); cur=""; }
+      else if(ch==="\n"){ row.push(cur); rows.push(row); row=[]; cur=""; }
+      else if(ch!=="\r") cur+=ch;
+    }
+  }
+  if(cur!==""||row.length){ row.push(cur); rows.push(row); }
+  return rows;
+}
+async function loadTeam(){
+  $("#logRows").innerHTML = `<div class="log-empty">Loading log.csv…</div>`;
+  const urls = [];
+  if(LOG_CSV_URL) urls.push(LOG_CSV_URL);
+  urls.push("log.csv");
+  for(const u of urls){
+    try{
+      const bust = u + (u.includes("?")?"&":"?") + "t=" + Date.now();
+      const r = await fetch(bust, {cache:"no-store"});
+      if(!r.ok) continue;
+      const rows = parseCSV(await r.text());
+      rows.shift(); // header
+      teamEntries = rows.filter(c=>c.length>=9 && c[0]).map(c=>{
+        let snap=null; try{ snap=JSON.parse(c[8]); }catch(e){}
+        return { t: Date.parse(c[0])||0, by:c[1]||null, kind:c[2]||"", name:c[3]||null,
+                 file:c[4]||"", mode:c[5]||"", size:c[6]||"", cap:c[7]||null, snap };
+      }).sort((a,b)=>b.t-a.t);
+      renderLog();
+      return;
+    }catch(e){}
+  }
+  $("#logRows").innerHTML = `<div class="log-empty">Couldn't load log.csv — it appears once the team log is set up (see team-log-setup.md) and the page is hosted in the repo.</div>`;
+}
+function downloadFromEntry(e){
+  if(!e.snap) return;
+  const backup = snapshot(), backupLabel = partLabel;
+  try{
+    Object.assign(state, e.snap);
+    partLabel = e.name || "";
+    const kind = e.kind==="SCAD" ? "SCAD" : e.kind==="JSON" ? "JSON" : "STL"; // NAMED → STL
+    let fn = e.file && /\.(stl|scad|json)$/i.test(e.file) ? e.file : fileBase()+"."+kind.toLowerCase();
+    if(kind==="SCAD") download(fn, scadText(), "text/plain");
+    else if(kind==="JSON") download(fn, jsonText(), "application/json");
+    else { fn = fn.replace(/\.(scad|json)$/i,".stl"); download(fn, writeSTL(buildMesh()), "model/stl"); }
+    addLog(kind, fn);
+  }catch(err){
+    alert("Couldn't regenerate this entry: "+err.message);
+  }finally{
+    Object.assign(state, backup);
+    partLabel = backupLabel;
+    $("#partLabel").value = backupLabel;
+    setModeButtons(); applyModeFields(); syncSize(); buildDetails(); render();
+  }
+}
+function fmtDate(t){
+  return new Date(t).toLocaleString([], {month:"short", day:"numeric", hour:"numeric", minute:"2-digit"});
+}
+function renderLog(){
+  const q = ($("#logSearch").value||"").toLowerCase();
+  const rows = $("#logRows");
+  const source = logScope==="team" ? teamEntries : logEntries;
+  const list = source.filter(e=>{
+    if(!q) return true;
+    const hay = [e.name, e.file, e.kind, e.mode, e.size, e.cap, e.by, fmtDate(e.t)].filter(Boolean).join(" ").toLowerCase();
+    return hay.includes(q);
+  });
+  if(!list.length){
+    rows.innerHTML = `<div class="log-empty">${q? "Nothing matches “"+q.replace(/</g,"&lt;")+"”" : logScope==="team" ? "Team log is empty so far." : "Nothing logged yet — name a part or download one and it shows up here."}</div>`;
+    return;
+  }
+  const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+  rows.innerHTML = list.map(e=>{
+    const i = source.indexOf(e);
+    return `<div class="log-row">
+      <div class="lr-name">${esc(e.name || e.file)}</div>
+      <div class="lr-file">${esc(e.file)}</div>
+      <div class="lr-meta">${e.by? esc(e.by)+" · ":""}${esc(e.mode)} · ${esc(e.size)}${e.cap? " · "+esc(e.cap):""} · ${fmtDate(e.t)}</div>
+      <div class="lr-side">
+        <span class="kind-badge ${e.kind==="STL"?"stl":e.kind==="NAMED"?"named":""}">${esc(e.kind)}</span>
+        ${e.snap? `<button class="lr-load" data-i="${i}">Load</button><button class="lr-load lr-dl" data-i="${i}" title="Regenerate & download">↓ ${e.kind==="SCAD"?"scad":e.kind==="JSON"?"json":"stl"}</button>`:""}
+      </div>
+    </div>`;
+  }).join("");
+  rows.querySelectorAll(".lr-load:not(.lr-dl)").forEach(b=>{
+    b.addEventListener("click",()=>{
+      const e = source[+b.dataset.i];
+      if(!e || !e.snap) return;
+      Object.assign(state, e.snap);
+      partLabel = e.name || "";
+      $("#partLabel").value = partLabel;
+      setModeButtons(); applyModeFields(); syncSize(); buildPresets(); buildDetails(); render(); updateNamePreview();
+      setBuilder("ui");
+    });
+  });
+  rows.querySelectorAll(".lr-dl").forEach(b=>{
+    b.addEventListener("click",()=>{ const e=source[+b.dataset.i]; if(e) downloadFromEntry(e); });
+  });
+}
+$("#scopeMine").addEventListener("click",()=>{
+  logScope="mine";
+  $("#scopeMine").classList.add("on"); $("#scopeTeam").classList.remove("on");
+  renderLog();
+});
+$("#scopeTeam").addEventListener("click",()=>{
+  logScope="team";
+  $("#scopeTeam").classList.add("on"); $("#scopeMine").classList.remove("on");
+  loadTeam();
+});
+$("#logSearch").addEventListener("input",renderLog);
+// naming: typing a name logs it (debounced), and updates the filename preview
+let nameTimer=null;
+$("#partLabel").addEventListener("input",e=>{
+  partLabel = e.target.value;
+  updateNamePreview();
+  clearTimeout(nameTimer);
+  if(sanitizeName(partLabel)){
+    nameTimer = setTimeout(()=>{
+      const top = logEntries[0];
+      if(top && top.kind==="NAMED" && top.name===sanitizeName(partLabel)) return;
+      addLog("NAMED", fileBase());
+    }, 1200);
+  }
+});
+
+/* ========== STL mesh generation ========== */
+// Bin sits centered at origin, z=0 at the bottom of the base pads.
+const TRI = [];
+function rrectPts(cx, cy, w, d, r, seg=5){
+  const hw=w/2, hd=d/2; r=Math.max(0.05,Math.min(r, hw-0.01, hd-0.01));
+  const pts=[];
+  const corners=[
+    [cx+hw-r, cy+hd-r, 0],
+    [cx-hw+r, cy+hd-r, 90],
+    [cx-hw+r, cy-hd+r, 180],
+    [cx+hw-r, cy-hd+r, 270]
+  ];
+  for(const [px,py,a0] of corners){
+    for(let i=0;i<=seg;i++){
+      const a=(a0+90*i/seg)*Math.PI/180;
+      pts.push([px+r*Math.cos(a), py+r*Math.sin(a)]);
+    }
+  }
+  return pts; // CCW
+}
+function capFan(pts,z,flip,tris){
+  for(let i=1;i<pts.length-1;i++){
+    let t=[[...pts[0],z],[...pts[i],z],[...pts[i+1],z]];
+    if(flip) t=[t[0],t[2],t[1]];
+    tris.push(t);
+  }
+}
+function loft(layers,tris){ // convex same-count layers; closed solid
+  for(let l=0;l<layers.length-1;l++){
+    const A=layers[l], B=layers[l+1], n=A.pts.length;
+    for(let i=0;i<n;i++){
+      const j=(i+1)%n;
+      const p1=[...A.pts[i],A.z], p2=[...A.pts[j],A.z], p3=[...B.pts[j],B.z], p4=[...B.pts[i],B.z];
+      tris.push([p1,p2,p3],[p1,p3,p4]);
+    }
+  }
+  capFan(layers[0].pts, layers[0].z, true, tris);
+  capFan(layers[layers.length-1].pts, layers[layers.length-1].z, false, tris);
+}
+function wallLoop(poly, z0, z1, inward, tris){
+  const n=poly.length;
+  for(let i=0;i<n;i++){
+    const j=(i+1)%n;
+    const p1=[...poly[i],z0],p2=[...poly[j],z0],p3=[...poly[j],z1],p4=[...poly[i],z1];
+    if(inward) tris.push([p1,p3,p2],[p1,p4,p3]);
+    else tris.push([p1,p2,p3],[p1,p3,p4]);
+  }
+}
+function capEar(outer, holes, z, up, tris){
+  const flat=[], hi=[];
+  outer.forEach(p=>flat.push(p[0],p[1]));
+  (holes||[]).forEach(h=>{ hi.push(flat.length/2); h.forEach(p=>flat.push(p[0],p[1])); });
+  const idx = earcut(flat, hi.length?hi:null);
+  const P=i=>[flat[2*i],flat[2*i+1]];
+  for(let k=0;k<idx.length;k+=3){
+    const a=P(idx[k]),b=P(idx[k+1]),c=P(idx[k+2]);
+    if(up) tris.push([[...a,z],[...b,z],[...c,z]]);
+    else   tris.push([[...a,z],[...c,z],[...b,z]]);
+  }
+}
+function box(x0,x1,y0,y1,z0,z1,tris){
+  const poly=[[x1,y1],[x0,y1],[x0,y0],[x1,y0]];
+  wallLoop(poly,z0,z1,false,tris);
+  capEar(poly,[],z0,false,tris);
+  capEar(poly,[],z1,true,tris);
+}
+function extrudeX(prof, x0, x1, tris){ // prof: [[y,z]] simple polygon
+  const flat=[]; prof.forEach(p=>flat.push(p[0],p[1]));
+  const idx=earcut(flat);
+  for(let k=0;k<idx.length;k+=3){
+    const a=prof[idx[k]],b=prof[idx[k+1]],c=prof[idx[k+2]];
+    tris.push([[x1,a[0],a[1]],[x1,b[0],b[1]],[x1,c[0],c[1]]]);
+    tris.push([[x0,a[0],a[1]],[x0,c[0],c[1]],[x0,b[0],b[1]]]);
+  }
+  const n=prof.length;
+  for(let i=0;i<n;i++){
+    const j=(i+1)%n, A=prof[i],B=prof[j];
+    tris.push([[x0,A[0],A[1]],[x0,B[0],B[1]],[x1,B[0],B[1]]],
+              [[x0,A[0],A[1]],[x1,B[0],B[1]],[x1,A[0],A[1]]]);
+  }
+}
+// Gridfinity base pads at half pitch (21 mm), spec profile heights 0 / 0.8 / 2.6 / 4.75
+function addPads(tris){
+  const PITCH=21, ENV=PITCH-0.5;
+  const nx=Math.round(state.w*2), ny=Math.round(state.d*2);
+  for(let i=0;i<nx;i++)for(let j=0;j<ny;j++){
+    const cx=-state.w*21 + PITCH/2 + i*PITCH;
+    const cy=-state.d*21 + PITCH/2 + j*PITCH;
+    loft([
+      {pts:rrectPts(cx,cy,ENV-5.9,ENV-5.9,0.8,4),z:0},
+      {pts:rrectPts(cx,cy,ENV-4.3,ENV-4.3,1.6,4),z:0.8},
+      {pts:rrectPts(cx,cy,ENV-4.3,ENV-4.3,1.6,4),z:2.6},
+      {pts:rrectPts(cx,cy,ENV,ENV,3.75,4),z:4.75},
+      {pts:rrectPts(cx,cy,ENV-0.3,ENV-0.3,3.6,4),z:5.2},
+    ],tris);
+  }
+}
+// Baseplate: socket profile is the inverse of the pad profile with 0.25 mm clearance.
+// Layers (inner opening size / corner r), bottom→top: 36.3 r1.15 → 37.7 r1.85 → 37.7 r1.85 → 41.9 r3.95
+function buildPlate(){
+  const tris=[];
+  const wU=Math.max(1,Math.round(state.w)), dU=Math.max(1,Math.round(state.d));
+  const solid = state.plateStyle==="solid";
+  const f = solid?1.4:0;
+  const T = 4.65 + f;
+  const W=wU*42, Dp=dU*42;
+  const outer=rrectPts(0,0,W,Dp,3.75,6);
+  const cells=[];
+  for(let i=0;i<wU;i++)for(let j=0;j<dU;j++){
+    const cx=-W/2+21+i*42, cy=-Dp/2+21+j*42;
+    cells.push({
+      bot: rrectPts(cx,cy,36.3,36.3,1.15,4),
+      mid: rrectPts(cx,cy,37.7,37.7,1.85,4),
+      top: rrectPts(cx,cy,41.9,41.9,3.95,4),
+    });
+  }
+  wallLoop(outer, 0, T, false, tris);
+  capEar(outer, cells.map(c=>c.top), T, true, tris);
+  if(solid) capEar(outer, [], 0, false, tris);
+  else      capEar(outer, cells.map(c=>c.bot), 0, false, tris);
+  for(const c of cells){
+    const layers=[{pts:c.bot,z:f},{pts:c.mid,z:f+0.7},{pts:c.mid,z:f+2.5},{pts:c.top,z:T}];
+    for(let l=0;l<layers.length-1;l++){
+      const A=layers[l],B=layers[l+1],n=A.pts.length;
+      for(let i2=0;i2<n;i2++){
+        const j2=(i2+1)%n;
+        const p1=[...A.pts[i2],A.z],p2=[...A.pts[j2],A.z],p3=[...B.pts[j2],B.z],p4=[...B.pts[i2],B.z];
+        tris.push([p1,p3,p2],[p1,p4,p3]);   // inward-facing socket walls
+      }
+    }
+    if(solid) capEar(c.bot, [], f, true, tris);   // blind socket floor
+  }
+  return tris;
+}
+function buildMesh(){
+  if(state.mode==="baseplate") return buildPlate();
+  const tris=[];
+  const W=state.w*42-0.5, D=state.d*42-0.5, H=state.h*7;
+  const BASE=4.75, WALL=1.2, FLOOR_T=1.2;
+  const floorTop=BASE+FLOOR_T;
+  addPads(tris);
+  const outer=rrectPts(0,0,W,D,3.75,6);
+  const lab=labelOn();
+  const innFrontY=-D/2+WALL;           // label side (back of preview = -y)
+  if(state.mode==="pcbs"){
+    // one closed solid: outer shell + blind slots cut from the top
+    const lay=pcbLayout();
+    const slotBot=H - slotDims().sd;   // ≥ 2 mm of material above the base, always
+    const totW=lay.nx*lay.L+(lay.nx-1)*lay.g;
+    const totD=lay.ny*lay.W+(lay.ny-1)*lay.g;
+    const regionY0=-D/2+4+(lab?14:0), regionY1=D/2-4;
+    const oy=regionY0+((regionY1-regionY0)-totD)/2;
+    const ox=-totW/2;
+    const holes=[];
+    for(let i=0;i<lay.nx;i++)for(let j=0;j<lay.ny;j++){
+      const cx=ox+i*(lay.L+lay.g)+lay.L/2;
+      const cy=oy+j*(lay.W+lay.g)+lay.W/2;
+      holes.push(rrectPts(cx,cy,lay.L,lay.W,Math.min(1,lay.W/3),3));
+    }
+    wallLoop(outer, BASE, H, false, tris);
+    capEar(outer, [], BASE, false, tris);
+    capEar(outer, holes, H, true, tris);
+    holes.forEach(h=>{
+      wallLoop(h, slotBot, H, true, tris);
+      capEar(h, [], slotBot, true, tris);
+    });
+  } else {
+    // one closed solid: outer shell with cavity
+    const cav=rrectPts(0,0,W-2*WALL,D-2*WALL,2.55,6);
+    wallLoop(outer, BASE, H, false, tris);
+    capEar(outer, [], BASE, false, tris);
+    capEar(outer, [cav], H, true, tris);
+    wallLoop(cav, floorTop, H, true, tris);
+    capEar(cav, [], floorTop, true, tris);
+    // dividers (overlapped 0.5 mm into walls and floor)
+    const cx=state.mode==="screws"?state.divX:state.cableDiv;
+    const cy=state.mode==="screws"?state.divY:1;
+    const ix0=-W/2+WALL, ix1=W/2-WALL;
+    const iy0=innFrontY+(lab?14:0), iy1=D/2-WALL;
+    for(let i=1;i<cx;i++){
+      const x=ix0+(ix1-ix0)*i/cx;
+      box(x-0.6,x+0.6, innFrontY-0.5, iy1+0.5, floorTop-0.5, H, tris);
+    }
+    for(let i=1;i<cy;i++){
+      const y=iy0+(iy1-iy0)*i/cy;
+      box(ix0-0.5,ix1+0.5, y-0.6,y+0.6, floorTop-0.5, H, tris);
+    }
+    // label shelf (back wall, -y side), overlapped into side and back walls
+    if(lab){
+      const y0=innFrontY;
+      extrudeX([[y0-0.5,H],[y0+14,H],[y0+14,H-1.2],[y0-0.5,H-15.7]], -W/2+0.8, W/2-0.8, tris);
+    }
+    // finger-slide scoop (front wall, +y side), overlapped into wall and floor
+    if(state.mode==="screws" || state.slide){
+      const y1=D/2-WALL;
+      const R=Math.min(20, H-floorTop, (D-2*WALL)*0.7);
+      if(R>2){
+        const prof=[];
+        const SEG=10;
+        for(let i=0;i<=SEG;i++){
+          const a=-Math.PI/2*i/SEG;                 // 0 → -90°
+          prof.unshift([y1-R+R*Math.cos(a), floorTop+R+R*Math.sin(a)]);
+        }
+        prof.unshift([y1+0.5, floorTop+R]);          // into the front wall
+        prof.push([y1-R, floorTop-0.5]);             // into the floor
+        prof.push([y1+0.5, floorTop-0.5]);           // corner, buried
+        extrudeX(prof, -W/2+0.8, W/2-0.8, tris);
+      }
+    }
+  }
+  return tris;
+}
+function writeSTL(tris){
+  const buf=new ArrayBuffer(84+tris.length*50);
+  const dv=new DataView(buf);
+  const head="team holder generator";
+  for(let i=0;i<head.length;i++) dv.setUint8(i,head.charCodeAt(i));
+  dv.setUint32(80, tris.length, true);
+  let o=84;
+  for(const t of tris){
+    const [a,b,c]=t;
+    const u=[b[0]-a[0],b[1]-a[1],b[2]-a[2]], v=[c[0]-a[0],c[1]-a[1],c[2]-a[2]];
+    let n=[u[1]*v[2]-u[2]*v[1], u[2]*v[0]-u[0]*v[2], u[0]*v[1]-u[1]*v[0]];
+    const L=Math.hypot(n[0],n[1],n[2])||1;
+    const vals=[n[0]/L,n[1]/L,n[2]/L, a[0],a[1],a[2], b[0],b[1],b[2], c[0],c[1],c[2]];
+    for(const val of vals){dv.setFloat32(o,val,true);o+=4}
+    dv.setUint16(o,0,true);o+=2;
+  }
+  return buf;
+}
+
+/* ========== AI builder ========== */
+document.querySelectorAll("#aiPanel .ex-chips .chip").forEach(c=>{
+  c.addEventListener("click",()=>{$("#aiText").value=c.dataset.ex;});
+});
+const AI_PROMPT = `You configure a Gridfinity holder generator. Convert the user's description into JSON.
+Respond with ONLY raw JSON. No markdown, no code fences, no commentary.
+
+Schema (omit fields that don't apply):
+{
+ "mode": "screws" | "cables" | "pcbs" | "baseplate",
+ "w": number,   // width in gridfinity units, multiple of 0.5, range 0.5-6 (1 unit = 42 mm). Baseplates: whole units only, 1-8.
+ "d": number,   // depth, same rules
+ "h": integer,  // height in 7 mm units, range 2-20 (not used for baseplates)
+ "divX": int, "divY": int, "label": boolean,            // screws mode: compartments across / deep
+ "cableDiv": int, "slide": boolean, "cableLabel": boolean,  // cables mode
+ "plateStyle": "minimal" | "solid", "plateWeight": boolean,  // baseplate mode
+ "pcbStyle": "slots" | "pockets",
+ "slotLen": number,   // mm, slot long dimension
+ "slotWid": number,   // mm, slot short dimension (board thickness for edge slots; board width for flat pockets)
+ "gap": number,       // mm between boards, default 4
+ "clearance": number, // per-side, default 0.25
+ "countMode": "auto" | "fixed", "nx": int, "ny": int,
+ "holeDepth": number, // mm, 0 = full depth
+ "pcbLabel": boolean,
+ "note": string       // 1-3 short sentences: your sizing math and assumptions
+}
+
+Sizing rules:
+- Usable interior per axis ≈ units*42 - 8 mm. Subtract 14 more from depth if a label shelf is on.
+- Boards on edge: pcbStyle "slots", slotLen = board long edge + 1, slotWid = board thickness + 0.4 (PCBs are usually 1.6 mm thick, so 2.0). Boards line up in rows along depth.
+- To fit N boards: needed depth ≈ N*(slotWid + 2*clearance) + (N-1)*gap. Pick the smallest 0.5-unit depth whose interior fits, and the smallest 0.5-unit width whose interior fits slotLen. Use countMode "fixed" with nx/ny matching the requested count (nx = boards per row across, ny = rows deep; usually nx=1, ny=N for edge slots... but if slotLen is short enough to fit 2+ per row, you may split, explain in note).
+- Boards lying flat: pcbStyle "pockets", slotLen = board length + 0.5, slotWid = board width + 0.5, holeDepth = board height + 1.
+- Height for pcbs: if you set holeDepth > 0, set h = ceil((holeDepth + 6.75) / 7) — slot depth plus 2 mm structural floor plus the 4.75 mm base. For edge slots pick holeDepth ≈ 35-50% of the board's standing dimension. For pockets, holeDepth = board height + 1.
+- If no quantity is given use countMode "auto".
+- Screw/cable bins: prefer the team's usual sizes (1.5-wide bins for small hardware, 2.5x3 or 2.5x4 at h10 for bulk).
+- Baseplates: mode "baseplate", whole units sized to the space described (divide mm by 42 and round down). Default plateStyle "minimal"; "solid" if they mention weight, sturdiness, or a loose surface.`;
+
+$("#keyToggle").addEventListener("click",()=>{
+  const r=$("#keyRow"); r.hidden=!r.hidden;
+});
+async function aiGenerate(){
+  const desc = $("#aiText").value.trim();
+  const st = $("#aiStatus"), btn = $("#aiGo");
+  if(!desc){ st.textContent="Type a description first."; st.classList.add("err"); return; }
+  st.classList.remove("err");
+  st.innerHTML = `<span class="spin"></span> Sizing your holder…`;
+  btn.disabled = true;
+  const key = $("#apiKey").value.trim();
+  const headers = {"Content-Type":"application/json"};
+  if(key){
+    headers["x-api-key"] = key;
+    headers["anthropic-version"] = "2023-06-01";
+    headers["anthropic-dangerous-direct-browser-access"] = "true";
+  }
+  try{
+    const response = await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers,
+      body:JSON.stringify({
+        model:"claude-sonnet-4-6",
+        max_tokens:1000,
+        messages:[{role:"user",content:AI_PROMPT+"\n\nDescription:\n"+desc}]
+      })
+    });
+    const data = await response.json();
+    if(data.error) throw new Error(data.error.message||data.error.type||"API error");
+    const text = (data.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("\n");
+    const clean = text.replace(/```json|```/g,"").trim();
+    const cfg = JSON.parse(clean);
+    applyAIConfig(cfg);
+    st.textContent = "Done — preview updated.";
+    if(cfg.note){ $("#aiNoteText").textContent = cfg.note; $("#aiNote").style.display="block"; }
+  }catch(err){
+    let msg = "Couldn't configure: " + err.message;
+    if(!key){
+      msg += " — if you're running this outside claude.ai, add your own API key below.";
+      $("#keyRow").hidden = false;
+    } else if(/auth|key|401|invalid/i.test(err.message)){
+      msg += " — check the API key.";
+    } else {
+      msg += " — try rephrasing, or use the controls.";
+    }
+    st.textContent = msg;
+    st.classList.add("err");
+  }finally{
+    btn.disabled = false;
+  }
+}
+function snapHalf(v,min,max){ return Math.max(min, Math.min(max, Math.round(v*2)/2)); }
+function applyAIConfig(c){
+  if(["screws","cables","pcbs","baseplate"].includes(c.mode)) state.mode=c.mode;
+  if(isFinite(c.w)) state.w=snapHalf(c.w,0.5,8);
+  if(isFinite(c.d)) state.d=snapHalf(c.d,0.5,8);
+  if(isFinite(c.h)) state.h=clampInt(c.h,2,20);
+  if(state.mode==="baseplate"){
+    state.w=Math.max(1,Math.min(8,Math.round(state.w)));
+    state.d=Math.max(1,Math.min(8,Math.round(state.d)));
+    if(c.plateStyle==="minimal"||c.plateStyle==="solid") state.plateStyle=c.plateStyle;
+    if(typeof c.plateWeight==="boolean") state.plateWeight=c.plateWeight;
+  }
+  if(state.mode==="screws"){
+    if(isFinite(c.divX)) state.divX=clampInt(c.divX,1,8);
+    if(isFinite(c.divY)) state.divY=clampInt(c.divY,1,8);
+    if(typeof c.label==="boolean") state.label=c.label;
+  }
+  if(state.mode==="cables"){
+    if(isFinite(c.cableDiv)) state.cableDiv=clampInt(c.cableDiv,1,4);
+    if(typeof c.slide==="boolean") state.slide=c.slide;
+    if(typeof c.cableLabel==="boolean") state.cableLabel=c.cableLabel;
+  }
+  if(state.mode==="pcbs"){
+    if(c.pcbStyle==="slots"||c.pcbStyle==="pockets") state.pcbStyle=c.pcbStyle;
+    if(isFinite(c.slotLen)&&c.slotLen>0) state.slotLen=+(+c.slotLen).toFixed(1);
+    if(isFinite(c.slotWid)&&c.slotWid>0) state.slotWid=+(+c.slotWid).toFixed(1);
+    if(isFinite(c.gap)&&c.gap>=1) state.gap=+(+c.gap).toFixed(1);
+    if(isFinite(c.clearance)&&c.clearance>=0) state.clearance=+(+c.clearance).toFixed(2);
+    if(c.countMode==="auto"||c.countMode==="fixed") state.countMode=c.countMode;
+    if(isFinite(c.nx)) state.nx=clampInt(c.nx,1,30);
+    if(isFinite(c.ny)) state.ny=clampInt(c.ny,1,30);
+    if(isFinite(c.holeDepth)&&c.holeDepth>=0) state.holeDepth=+(+c.holeDepth).toFixed(1);
+    if(typeof c.pcbLabel==="boolean") state.pcbLabel=c.pcbLabel;
+  }
+  setModeButtons(); applyModeFields(); syncSize(); buildPresets(); buildDetails(); render();
+}
+$("#aiGo").addEventListener("click",aiGenerate);
+
+/* ========== downloads ========== */
+$("#dlStl").addEventListener("click",()=>{
+  const btn=$("#dlStl"); btn.disabled=true; btn.textContent="Building…";
+  setTimeout(()=>{
+    try{
+      if(typeof earcut!=="function") throw new Error("triangulation library failed to load — refresh the page");
+      const tris=buildMesh();
+      const fn=fileBase()+".stl";
+      download(fn, writeSTL(tris), "model/stl");
+      addLog("STL", fn);
+    }catch(err){
+      alert("STL build failed: "+err.message+"\nThe .scad download still works as a fallback.");
+    }finally{
+      btn.disabled=false; btn.textContent="Download STL";
+    }
+  },30);
+});
+$("#dlScad").addEventListener("click",()=>{
+  const fn=fileBase()+".scad";
+  download(fn, scadText(), "text/plain");
+  addLog("SCAD", fn);
+});
+$("#dlJson").addEventListener("click",()=>{
+  const fn=fileBase()+".json";
+  download(fn, jsonText(), "application/json");
+  addLog("JSON", fn);
+});
+$("#copyBtn").addEventListener("click",async()=>{
+  const plain = $("#settingsPre").innerText;
+  try{ await navigator.clipboard.writeText(plain); flash("Copied"); }
+  catch{ flash("Copy failed — select the text instead"); }
+});
+function flash(msg){
+  const b = $("#copyBtn"), old = b.textContent;
+  b.textContent = msg; setTimeout(()=>b.textContent=old, 1400);
+}
+
+/* ========== init ========== */
+applyModeFields(); buildPresets(); buildDetails(); render();
+logStore.load().then(entries=>{
+  if(Array.isArray(entries)){ logEntries = entries; }
+  $("#logCount").textContent = logEntries.length;
+});
+</script>
+</body>
+</html>
