@@ -50,6 +50,32 @@ header{
   padding:18px clamp(16px,4vw,48px) 0;
 }
 .head-top{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 24px;margin-bottom:14px}
+.key-btn{
+  margin-left:auto;align-self:center;
+  background:var(--panel);border:1.5px solid var(--line-strong);border-radius:8px;
+  color:var(--ink-soft);padding:7px 9px;cursor:pointer;line-height:0;
+  transition:border-color .12s,color .12s;
+}
+.key-btn:hover{border-color:var(--ink);color:var(--ink)}
+.key-btn.authed{border-color:var(--green);color:var(--green);background:#F0FAF4}
+.key-btn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+/* modal */
+.modal-back{
+  position:fixed;inset:0;background:rgba(14,42,63,.45);z-index:50;
+  display:flex;align-items:center;justify-content:center;padding:20px;
+}
+.modal{
+  background:var(--panel);border:1.5px solid var(--ink);border-radius:12px;
+  box-shadow:6px 6px 0 rgba(14,42,63,.18);width:100%;max-width:360px;
+}
+.modal-h{padding:14px 18px;border-bottom:1.5px solid var(--ink);font-weight:800;text-transform:uppercase;font-stretch:85%;font-size:15px;display:flex;align-items:center;gap:10px}
+.modal-b{padding:18px;display:flex;flex-direction:column;gap:12px}
+.modal-b label{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);display:block;margin-bottom:5px}
+.modal-b input{width:100%;font-family:var(--mono);font-size:14px;border:1.5px solid var(--line-strong);border-radius:8px;padding:9px 11px;background:#fff;color:var(--ink)}
+.modal-b input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,100,25,.18)}
+.modal-msg{font-family:var(--mono);font-size:12px;color:var(--ink-soft)}
+.modal-msg.err{color:var(--red)}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:4px}
 .brand{font-weight:900;font-size:clamp(22px,3.4vw,32px);letter-spacing:-.02em;font-stretch:80%;text-transform:uppercase}
 .brand em{font-style:normal;color:var(--accent)}
 .tagline{font-family:var(--mono);font-size:12px;color:var(--ink-soft)}
@@ -94,6 +120,14 @@ header{
   background:#fff;padding:4px 10px;cursor:pointer;color:var(--ink);
 }
 .lr-load:hover{border-color:var(--ink)}
+.lr-edit{border-color:var(--blue);color:var(--blue)}
+.lr-del{border-color:var(--red);color:var(--red)}
+.lr-edit-row{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}
+.lr-edit-row input{font-family:var(--mono);font-size:12px;border:1.5px solid var(--line-strong);border-radius:6px;padding:6px 8px;background:#fff;color:var(--ink)}
+.lr-edit-row .ei-name{flex:2 1 160px}
+.lr-edit-row .ei-cap{flex:1 1 100px}
+.lr-edit-row button{font-family:var(--disp);font-weight:700;font-size:12px;border-radius:6px;padding:6px 12px;cursor:pointer;border:1.5px solid var(--ink);background:var(--panel)}
+.lr-edit-row .save{background:var(--green);color:#fff;border-color:var(--green)}
 .log-empty{font-family:var(--mono);font-size:12px;color:var(--ink-soft);padding:20px 0;text-align:center}
 .log-foot{display:flex;justify-content:space-between;align-items:center;margin-top:14px}
 .log-clear{font-family:var(--mono);font-size:11px;color:var(--red);background:none;border:none;cursor:pointer;text-decoration:underline}
@@ -287,6 +321,9 @@ footer a:hover{color:var(--accent-dark);border-color:var(--accent-dark)}
   <div class="head-top">
     <div class="brand">Holder <em>Generator</em></div>
     <div class="tagline">a gridfinity product · redesigned by Kilan Rougeot</div>
+    <button class="key-btn" id="keyBtn" title="Editor login" aria-label="Editor login">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><path d="m10.5 12.5 7-7"/><path d="m16 6 2 2"/><path d="m19 3 2 2"/></svg>
+    </button>
   </div>
   <div class="builder-switch" role="tablist" aria-label="Builder mode">
     <button class="bs on" id="tabUI" role="tab" aria-selected="true">Build with controls<span class="b-sub">pick sizes yourself</span></button>
@@ -425,22 +462,50 @@ footer a:hover{color:var(--accent-dark);border-color:var(--accent-dark)}
   </section>
 </main>
 
+<div class="modal-back hide" id="loginModal">
+  <div class="modal">
+    <div class="modal-h">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><path d="m10.5 12.5 7-7"/><path d="m16 6 2 2"/><path d="m19 3 2 2"/></svg>
+      <span id="loginTitle">Editor login</span>
+    </div>
+    <div class="modal-b">
+      <div id="loginFields">
+        <div><label for="loginEmail">Email</label><input id="loginEmail" type="email" autocomplete="username"></div>
+        <div style="margin-top:10px"><label for="loginPass">Password</label><input id="loginPass" type="password" autocomplete="current-password"></div>
+      </div>
+      <div class="modal-msg" id="loginMsg"></div>
+      <div class="modal-actions">
+        <button class="btn" id="loginCancel">Close</button>
+        <button class="btn primary" id="loginGo">Sign in</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <footer>
   <span class="foot-credit">a gridfinity product · redesigned by Kilan Rougeot</span>
 </footer>
 
 <script>
 "use strict";
-/* ================= LIVE LOG (Google Sheets) =================
-   TEAM_LOG_URL — Apps Script web-app URL. Every downloaded file is
-     POSTed here and appended as a row in the Google Sheet.
-   SHEET_CSV_URL — the sheet's "Publish to web" CSV link. The site
-     reads the live log from this. The sheet itself is never linked
-     in the UI; the page only consumes its data.
-   Setup steps: team-log-setup.md. Leave both empty = local-only log. */
-const TEAM_LOG_URL  = "https://script.google.com/macros/s/AKfycbxpPf4KmXxwkFBoHXvedFjW_p3lJA6y7oi_gvamzIatMLL7_0xg_HFuOFjGZjhXS3f2/exec";
-const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQXykGIIW_qqW5fAY1r90xQFTCTaZVBuhMFf5pqYMFUQcfz72CemXK2fJyzv4PanOo6guYS4XRN5MXU/pub?gid=1595147584&single=true&output=csv";
-/* ============================================================ */
+/* ================= LIVE LOG (Supabase) =================
+   Fast hosted database with real auth. Reads are open to everyone;
+   editing/deleting rows requires logging in via the key icon.
+   Setup: supabase-setup.md. Leave blank = local-only log.        */
+const SUPABASE_URL      = "https://wouensvccufqouvwqkrq.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndvdWVuc3ZjY3VmcW91dndxa3JxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzMTE0MDMsImV4cCI6MjA5Njg4NzQwM30.dLXaYjt6b8gS-wIxj1G5b6GHSkz_BbQDwwi_F6WCpZQ";
+/* ====================================================== */
+const SB = {
+  url:  SUPABASE_URL.replace(/\/$/,""),
+  key:  SUPABASE_ANON_KEY,
+  token: null,            // set after login
+  on(){ return !!(this.url && this.key); },
+  headers(extra){
+    const h = { apikey:this.key, "Content-Type":"application/json", ...(extra||{}) };
+    h.Authorization = "Bearer " + (this.token || this.key);
+    return h;
+  }
+};
 const $ = s => document.querySelector(s);
 const state = {
   mode:"screws",
@@ -948,12 +1013,15 @@ function addLog(kind, file){
   };
   logEntries.unshift(entry);
   logStore.save(logEntries);
-  if(TEAM_LOG_URL){
+  if(SB.on()){
     try{
-      fetch(TEAM_LOG_URL, {
-        method:"POST", mode:"no-cors",
-        headers:{"Content-Type":"text/plain"},
-        body: JSON.stringify(entry)
+      fetch(SB.url+"/rest/v1/log", {
+        method:"POST",
+        headers:SB.headers({Prefer:"return=minimal"}),
+        body: JSON.stringify({
+          t:entry.t, kind:entry.kind, name:entry.name, file:entry.file,
+          mode:entry.mode, size:entry.size, capacity:entry.cap, snap:entry.snap
+        })
       });
     }catch(e){}
   }
@@ -981,40 +1049,19 @@ function parseCSV(text){
 async function loadTeam(){
   const rowsEl = $("#logRows");
   if(!teamEntries.length && rowsEl) rowsEl.innerHTML = `<div class="log-empty">Loading log…</div>`;
-  // Preferred: live JSON straight from the Apps Script (no cache delay)
-  if(TEAM_LOG_URL){
-    try{
-      const bust = TEAM_LOG_URL + (TEAM_LOG_URL.includes("?")?"&":"?") + "t=" + Date.now();
-      const r = await fetch(bust, {cache:"no-store", redirect:"follow"});
-      if(r.ok){
-        const data = await r.json();
-        if(Array.isArray(data)){
-          teamEntries = data.map(e=>({
-            t:+e.t||0, kind:e.kind||"", name:e.name||null, file:e.file||"",
-            mode:e.mode||"", size:e.size||"", cap:e.cap||null, snap:e.snap||null
-          }));
-          renderLog();
-          return;
-        }
-      }
-    }catch(e){ /* fall through to CSV */ }
-  }
-  // Fallback: published CSV (cached a few minutes by Google)
-  if(SHEET_CSV_URL){
-    try{
-      const bust = SHEET_CSV_URL + (SHEET_CSV_URL.includes("?")?"&":"?") + "t=" + Date.now();
-      const r = await fetch(bust, {cache:"no-store"});
-      if(r.ok){
-        const rows = parseCSV(await r.text());
-        rows.shift();
-        teamEntries = rows.filter(c=>c.length>=8 && c[0]).map(c=>{
-          let snap=null; try{ snap=JSON.parse(c[7]); }catch(e){}
-          return { t: Date.parse(c[0])||0, kind:c[1]||"", name:c[2]||null,
-                   file:c[3]||"", mode:c[4]||"", size:c[5]||"", cap:c[6]||null, snap };
-        });
-      }
-    }catch(e){}
-  }
+  if(!SB.on()){ renderLog(); return; }
+  try{
+    const r = await fetch(SB.url+"/rest/v1/log?select=*&order=t.desc&limit=500", {
+      headers:SB.headers(), cache:"no-store"
+    });
+    if(r.ok){
+      const data = await r.json();
+      teamEntries = data.map(e=>({
+        id:e.id, t:+e.t||Date.parse(e.created_at)||0, kind:e.kind||"", name:e.name||null,
+        file:e.file||"", mode:e.mode||"", size:e.size||"", cap:e.capacity||null, snap:e.snap||null
+      }));
+    }
+  }catch(e){}
   renderLog();
 }
 // merged view: shared CSV + this browser's just-made entries, de-duped, newest first
@@ -1067,19 +1114,26 @@ function renderLog(){
     rows.innerHTML = `<div class="log-empty">${q? "Nothing matches “"+q.replace(/</g,"&lt;")+"”" : "Nothing logged yet — download a file and it shows up here."}</div>`;
     return;
   }
-  const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+  const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
   rows.innerHTML = list.map((e,i)=>{
-    return `<div class="log-row">
+    const canEdit = authed && SB.on() && e.id!=null;
+    return `<div class="log-row" data-i="${i}">
       <div class="lr-name">${esc(e.name || e.file)}</div>
       <div class="lr-file">${esc(e.file)}</div>
       <div class="lr-meta">${esc(e.mode)} · ${esc(e.size)}${e.cap? " · "+esc(e.cap):""} · ${fmtDate(e.t)}</div>
       <div class="lr-side">
         <span class="kind-badge ${e.kind==="STL"?"stl":""}">${esc(e.kind)}</span>
         ${e.snap? `<button class="lr-load" data-i="${i}">Load</button><button class="lr-load lr-dl" data-i="${i}" title="Regenerate & download">↓ ${e.kind==="SCAD"?"scad":e.kind==="JSON"?"json":"stl"}</button>`:""}
+        ${canEdit? `<button class="lr-load lr-edit" data-i="${i}">Edit</button><button class="lr-load lr-del" data-i="${i}">Delete</button>`:""}
       </div>
+      ${canEdit? `<div class="lr-edit-row hide" data-edit="${i}">
+        <input class="ei-name" placeholder="name" value="${esc(e.name||"")}">
+        <input class="ei-cap" placeholder="capacity" value="${esc(e.cap||"")}">
+        <button class="save" data-save="${i}">Save</button>
+      </div>`:""}
     </div>`;
   }).join("");
-  rows.querySelectorAll(".lr-load:not(.lr-dl)").forEach(b=>{
+  rows.querySelectorAll(".lr-load:not(.lr-dl):not(.lr-edit):not(.lr-del)").forEach(b=>{
     b.addEventListener("click",()=>{
       const e = list[+b.dataset.i];
       if(!e || !e.snap) return;
@@ -1093,6 +1147,21 @@ function renderLog(){
   rows.querySelectorAll(".lr-dl").forEach(b=>{
     b.addEventListener("click",()=>{ const e=list[+b.dataset.i]; if(e) downloadFromEntry(e); });
   });
+  rows.querySelectorAll(".lr-edit").forEach(b=>{
+    b.addEventListener("click",()=>{ const r=rows.querySelector(`[data-edit="${b.dataset.i}"]`); if(r) r.classList.toggle("hide"); });
+  });
+  rows.querySelectorAll(".lr-del").forEach(b=>{
+    b.addEventListener("click",()=>{ const e=list[+b.dataset.i]; if(e && confirm("Delete this log entry for everyone?")) sbDelete(e); });
+  });
+  rows.querySelectorAll(".save").forEach(b=>{
+    b.addEventListener("click",()=>{
+      const i=+b.dataset.save, e=list[i];
+      const wrap=rows.querySelector(`[data-edit="${i}"]`);
+      const name=wrap.querySelector(".ei-name").value.trim();
+      const cap=wrap.querySelector(".ei-cap").value.trim();
+      sbUpdate(e, {name:name||null, capacity:cap||null});
+    });
+  });
 }
 $("#logSearch").addEventListener("input",renderLog);
 $("#logRefresh").addEventListener("click",loadTeam);
@@ -1100,6 +1169,62 @@ $("#logRefresh").addEventListener("click",loadTeam);
 let logPoll=null;
 function startLogPoll(){ stopLogPoll(); logPoll=setInterval(()=>{ if(!$("#logPanel").classList.contains("hide")) loadTeam(); }, 12000); }
 function stopLogPoll(){ if(logPoll){ clearInterval(logPoll); logPoll=null; } }
+
+/* ===== editor auth (Supabase) ===== */
+let authed = false;
+function openLogin(){
+  if(authed){ if(confirm("Sign out of the editor?")) signOut(); return; }
+  if(!SB.on()){ alert("The editor isn't set up yet (no database configured)."); return; }
+  $("#loginMsg").textContent=""; $("#loginMsg").classList.remove("err");
+  $("#loginModal").classList.remove("hide"); $("#loginEmail").focus();
+}
+function closeLogin(){ $("#loginModal").classList.add("hide"); }
+function signOut(){ authed=false; SB.token=null; $("#keyBtn").classList.remove("authed"); renderLog(); }
+async function doLogin(){
+  const email=$("#loginEmail").value.trim(), pass=$("#loginPass").value;
+  const msg=$("#loginMsg");
+  if(!email||!pass){ msg.textContent="Enter email and password."; msg.classList.add("err"); return; }
+  msg.classList.remove("err"); msg.textContent="Signing in…";
+  try{
+    const r=await fetch(SB.url+"/auth/v1/token?grant_type=password",{
+      method:"POST", headers:{apikey:SB.key,"Content-Type":"application/json"},
+      body:JSON.stringify({email,password:pass})
+    });
+    const d=await r.json();
+    if(!r.ok || !d.access_token) throw new Error(d.error_description||d.msg||"Login failed");
+    SB.token=d.access_token; authed=true;
+    $("#keyBtn").classList.add("authed");
+    closeLogin(); $("#loginPass").value=""; renderLog();
+  }catch(err){ msg.textContent=err.message; msg.classList.add("err"); }
+}
+async function sbUpdate(entry, fields){
+  if(!entry || entry.id==null) return;
+  try{
+    const r=await fetch(SB.url+"/rest/v1/log?id=eq."+entry.id,{
+      method:"PATCH", headers:SB.headers({Prefer:"return=minimal"}), body:JSON.stringify(fields)
+    });
+    if(!r.ok) throw 0;
+    if("name" in fields) entry.name=fields.name;
+    if("capacity" in fields) entry.cap=fields.capacity;
+    renderLog();
+  }catch(e){ alert("Couldn't save the edit — are you still signed in?"); }
+}
+async function sbDelete(entry){
+  if(!entry || entry.id==null) return;
+  try{
+    const r=await fetch(SB.url+"/rest/v1/log?id=eq."+entry.id,{
+      method:"DELETE", headers:SB.headers({Prefer:"return=minimal"})
+    });
+    if(!r.ok) throw 0;
+    teamEntries=teamEntries.filter(x=>x.id!==entry.id);
+    updateLogCount(); renderLog();
+  }catch(e){ alert("Couldn't delete — are you still signed in?"); }
+}
+$("#keyBtn").addEventListener("click",openLogin);
+$("#loginCancel").addEventListener("click",closeLogin);
+$("#loginGo").addEventListener("click",doLogin);
+$("#loginPass").addEventListener("keydown",e=>{ if(e.key==="Enter") doLogin(); });
+$("#loginModal").addEventListener("click",e=>{ if(e.target===$("#loginModal")) closeLogin(); });
 // naming: updates the filename preview only — logging happens on download
 $("#partLabel").addEventListener("input",e=>{
   partLabel = e.target.value;
