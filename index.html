@@ -1045,6 +1045,7 @@ async function loadTeam(){
       }));
     }
   }catch(e){}
+  updateLogCount();
   renderLog();
 }
 // single source of truth: the database (teamEntries), newest first
