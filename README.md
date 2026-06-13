@@ -18,7 +18,7 @@ A single-file web app for generating our standard Gridfinity parts — screw bin
 ## Build log
 - Name a part and downloads become `Name gridfinity bin for 8 compartments.stl` / `... holder for 24 boards.stl` etc.
 - Every download and named part is logged — searchable, with one-click **Load** to restore exact settings
-- "My log" is each person's instant per-browser history. The **Team log** is permanent: every event is committed as a row in [`log.csv`](log.csv) in this repo (append-only, lives in git history, not clearable from the site). Any entry can be reopened on the site or regenerated and downloaded. Setup: [`team-log-setup.md`](team-log-setup.md)
+- One shared log for everyone. Every **downloaded file** is committed as a row in [`log.csv`](log.csv) (append-only, lives in git history, not clearable from the site). Any entry can be reopened on the site or regenerated and downloaded. A raw-CSV link sits in the page footer. Setup: [`team-log-setup.md`](team-log-setup.md)
 
 ## PCB height logic
 Set a slot depth and the bin height auto-sizes to depth + 2 mm structural floor + the 4.75 mm gridfinity base, rounded up to 7 mm units. Slot depth 0 = slots run the full bin height.

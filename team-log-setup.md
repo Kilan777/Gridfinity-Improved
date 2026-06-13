@@ -35,8 +35,7 @@ Commit & push. Done — the seed `log.csv` is already in the repo.
 ## How it behaves
 - Each event commits within a few seconds (check the repo's commit history — every download is a commit)
 - The site reads `log.csv` with a cache-buster; GitHub Pages redeploys the file, so brand-new rows can take ~30–60 s to appear in the Team tab
-- First download asks each person for a name/initials once
-- The "My log" view stays as each person's instant private history; "Team log" is the permanent shared record
+- One shared log for everyone — no per-person split. Files log only when downloaded (naming a part alone doesn't log it).
 - `settings_json` column holds the complete configuration, so the CSV alone is enough to recreate any part — on the site or by hand
 
 ## Security notes

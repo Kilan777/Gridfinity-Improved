@@ -268,11 +268,14 @@ main{
 
 footer{
   border-top:2px solid var(--ink);background:var(--panel);
-  padding:20px clamp(16px,4vw,48px) 36px;
+  padding:18px clamp(16px,4vw,48px);
+  text-align:center;
 }
-footer h3{font-size:13px;text-transform:uppercase;font-weight:800;font-stretch:85%;margin-bottom:10px}
-footer ul{list-style:none;display:flex;flex-wrap:wrap;gap:8px 24px;font-family:var(--mono);font-size:12px}
-footer a{color:var(--blue)}
+footer a{
+  color:var(--blue);font-family:var(--mono);font-size:13px;font-weight:500;
+  text-decoration:none;border-bottom:1.5px solid var(--blue);padding-bottom:1px;
+}
+footer a:hover{color:var(--accent-dark);border-color:var(--accent-dark)}
 .hide{display:none!important}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}.spin{animation-duration:2s}}
 </style>
@@ -282,7 +285,7 @@ footer a{color:var(--blue)}
 <header>
   <div class="head-top">
     <div class="brand">Holder <em>Generator</em></div>
-    <div class="tagline">team gridfinity · house defaults baked in · powered by gridfinity_extended_openscad</div>
+    <div class="tagline">a gridfinity product · redesigned by Kilan Rougeot</div>
   </div>
   <div class="builder-switch" role="tablist" aria-label="Builder mode">
     <button class="bs on" id="tabUI" role="tab" aria-selected="true">Build with controls<span class="b-sub">pick sizes yourself</span></button>
@@ -299,14 +302,10 @@ footer a{color:var(--blue)}
     <div class="card hide" id="logPanel">
       <div class="card-h"><span class="step">History</span><h2>Build log</h2></div>
       <div class="card-b">
-        <div class="chips" id="logScope">
-          <button class="chip on" id="scopeMine">My log</button>
-          <button class="chip" id="scopeTeam">Team log · log.csv</button>
-        </div>
-        <input class="log-search" id="logSearch" type="search" placeholder="Search by name, type, size, person, date…">
+        <input class="log-search" id="logSearch" type="search" placeholder="Search by name, type, size, date…">
         <div class="log-rows" id="logRows"></div>
         <div class="log-foot">
-          <span class="hint" style="margin:0">Named parts and downloads log automatically. <b>Load</b> reopens the exact settings, <b>↓</b> regenerates the file. The team log is append-only — it lives in <b>log.csv</b> in the repo and can't be cleared from here.</span>
+          <span class="hint" style="margin:0">Every downloaded file is logged here. <b>Load</b> reopens the exact settings, <b>↓</b> regenerates the file. The log is append-only — it lives in <b>log.csv</b> in the repo and can't be cleared from here.</span>
         </div>
       </div>
     </div>
@@ -425,16 +424,7 @@ footer a{color:var(--blue)}
 </main>
 
 <footer>
-  <h3>Other tools we use</h3>
-  <ul>
-    <li><a href="https://gridflock.yawk.at/" target="_blank" rel="noopener">GridFlock — baseplates</a></li>
-    <li><a href="https://makerworld.com/en/models/481168-gridfinity-extended-official" target="_blank" rel="noopener">Gridfinity Extended on MakerWorld</a></li>
-    <li><a href="https://outline.georgs.lv/" target="_blank" rel="noopener">Outline — cavity from photo</a></li>
-    <li><a href="https://www.tooltrace.ai/" target="_blank" rel="noopener">ToolTrace</a></li>
-    <li><a href="https://gridfinity.tools/rebase/" target="_blank" rel="noopener">Rebase</a></li>
-    <li><a href="https://gridfinity.liorbk.com/" target="_blank" rel="noopener">liorbk tracer</a></li>
-    <li><a href="https://github.com/ostat/gridfinity_extended_openscad" target="_blank" rel="noopener">gridfinity_extended_openscad repo</a></li>
-  </ul>
+  <a id="rawCsvLink" href="log.csv" target="_blank" rel="noopener">View the full log as raw CSV →</a>
 </footer>
 
 <script>
@@ -496,7 +486,7 @@ function setBuilder(view){ // 'ui' | 'ai' | 'log'
   document.querySelectorAll(".ui-only").forEach(el=>el.classList.toggle("hide",view!=="ui"));
   $("#aiPanel").classList.toggle("hide",view!=="ai");
   $("#logPanel").classList.toggle("hide",view!=="log");
-  if(view==="log") renderLog();
+  if(view==="log") loadTeam();
 }
 $("#tabUI").addEventListener("click",()=>setBuilder("ui"));
 $("#tabAI").addEventListener("click",()=>setBuilder("ai"));
@@ -943,24 +933,12 @@ function snapshot(){
 function sizeText(){
   return state.mode==="baseplate" ? `${Math.round(state.w)}×${Math.round(state.d)}` : `${state.w}×${state.d}×${state.h}`;
 }
-let userName = null;
-function getUser(){
-  if(userName) return userName;
-  try{ userName = localStorage.getItem("holder-user"); }catch(e){}
-  if(!userName){
-    try{
-      userName = (prompt("Name or initials for the team log?") || "anon").slice(0,24);
-      localStorage.setItem("holder-user", userName);
-    }catch(e){ userName = "anon"; }
-  }
-  return userName;
-}
 function addLog(kind, file){
   const top = logEntries[0];
   if(top && top.kind===kind && top.file===file && Date.now()-top.t < 4000) return; // de-dupe double clicks
   const entry = {
     t: Date.now(),
-    kind,                                  // "STL" | "SCAD" | "JSON" | "NAMED"
+    kind,                                  // "STL" | "SCAD" | "JSON"
     name: sanitizeName(partLabel) || null,
     file,
     mode: state.mode,
@@ -970,19 +948,19 @@ function addLog(kind, file){
   };
   logEntries.unshift(entry);
   logStore.save(logEntries);
-  $("#logCount").textContent = logEntries.length;
   if(TEAM_LOG_URL){
     try{
       fetch(TEAM_LOG_URL, {
         method:"POST", mode:"no-cors",
         headers:{"Content-Type":"text/plain"},
-        body: JSON.stringify({...entry, by:getUser()})
+        body: JSON.stringify(entry)
       });
     }catch(e){}
   }
+  updateLogCount();
   if(!$("#logPanel").classList.contains("hide")) renderLog();
 }
-let logScope = "mine", teamEntries = [];
+let teamEntries = [];
 function parseCSV(text){
   const rows=[]; let row=[], cur="", inQ=false;
   for(let i=0;i<text.length;i++){
@@ -1001,7 +979,8 @@ function parseCSV(text){
   return rows;
 }
 async function loadTeam(){
-  $("#logRows").innerHTML = `<div class="log-empty">Loading log.csv…</div>`;
+  const rowsEl = $("#logRows");
+  if(!teamEntries.length) rowsEl.innerHTML = `<div class="log-empty">Loading log…</div>`;
   const urls = [];
   if(LOG_CSV_URL) urls.push(LOG_CSV_URL);
   urls.push("log.csv");
@@ -1011,17 +990,30 @@ async function loadTeam(){
       const r = await fetch(bust, {cache:"no-store"});
       if(!r.ok) continue;
       const rows = parseCSV(await r.text());
-      rows.shift(); // header
+      rows.shift(); // header: time,by,kind,name,file,mode,size,capacity,settings_json
       teamEntries = rows.filter(c=>c.length>=9 && c[0]).map(c=>{
         let snap=null; try{ snap=JSON.parse(c[8]); }catch(e){}
-        return { t: Date.parse(c[0])||0, by:c[1]||null, kind:c[2]||"", name:c[3]||null,
+        return { t: Date.parse(c[0])||0, kind:c[2]||"", name:c[3]||null,
                  file:c[4]||"", mode:c[5]||"", size:c[6]||"", cap:c[7]||null, snap };
-      }).sort((a,b)=>b.t-a.t);
+      });
       renderLog();
       return;
     }catch(e){}
   }
-  $("#logRows").innerHTML = `<div class="log-empty">Couldn't load log.csv — it appears once the team log is set up (see team-log-setup.md) and the page is hosted in the repo.</div>`;
+  renderLog(); // fall back to local-only entries
+}
+// merged view: shared CSV + this browser's just-made entries, de-duped, newest first
+function mergedLog(){
+  const seen = new Set(), out = [];
+  for(const e of [...logEntries, ...teamEntries]){
+    const key = e.kind+"|"+e.file+"|"+Math.round(e.t/1000);
+    if(seen.has(key)) continue;
+    seen.add(key); out.push(e);
+  }
+  return out.sort((a,b)=>b.t-a.t);
+}
+function updateLogCount(){
+  $("#logCount").textContent = mergedLog().length;
 }
 function downloadFromEntry(e){
   if(!e.snap) return;
@@ -1029,7 +1021,7 @@ function downloadFromEntry(e){
   try{
     Object.assign(state, e.snap);
     partLabel = e.name || "";
-    const kind = e.kind==="SCAD" ? "SCAD" : e.kind==="JSON" ? "JSON" : "STL"; // NAMED → STL
+    const kind = e.kind==="SCAD" ? "SCAD" : e.kind==="JSON" ? "JSON" : "STL";
     let fn = e.file && /\.(stl|scad|json)$/i.test(e.file) ? e.file : fileBase()+"."+kind.toLowerCase();
     if(kind==="SCAD") download(fn, scadText(), "text/plain");
     else if(kind==="JSON") download(fn, jsonText(), "application/json");
@@ -1050,32 +1042,31 @@ function fmtDate(t){
 function renderLog(){
   const q = ($("#logSearch").value||"").toLowerCase();
   const rows = $("#logRows");
-  const source = logScope==="team" ? teamEntries : logEntries;
+  const source = mergedLog();
   const list = source.filter(e=>{
     if(!q) return true;
-    const hay = [e.name, e.file, e.kind, e.mode, e.size, e.cap, e.by, fmtDate(e.t)].filter(Boolean).join(" ").toLowerCase();
+    const hay = [e.name, e.file, e.kind, e.mode, e.size, e.cap, fmtDate(e.t)].filter(Boolean).join(" ").toLowerCase();
     return hay.includes(q);
   });
   if(!list.length){
-    rows.innerHTML = `<div class="log-empty">${q? "Nothing matches “"+q.replace(/</g,"&lt;")+"”" : logScope==="team" ? "Team log is empty so far." : "Nothing logged yet — name a part or download one and it shows up here."}</div>`;
+    rows.innerHTML = `<div class="log-empty">${q? "Nothing matches “"+q.replace(/</g,"&lt;")+"”" : "Nothing logged yet — download a file and it shows up here."}</div>`;
     return;
   }
   const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
-  rows.innerHTML = list.map(e=>{
-    const i = source.indexOf(e);
+  rows.innerHTML = list.map((e,i)=>{
     return `<div class="log-row">
       <div class="lr-name">${esc(e.name || e.file)}</div>
       <div class="lr-file">${esc(e.file)}</div>
-      <div class="lr-meta">${e.by? esc(e.by)+" · ":""}${esc(e.mode)} · ${esc(e.size)}${e.cap? " · "+esc(e.cap):""} · ${fmtDate(e.t)}</div>
+      <div class="lr-meta">${esc(e.mode)} · ${esc(e.size)}${e.cap? " · "+esc(e.cap):""} · ${fmtDate(e.t)}</div>
       <div class="lr-side">
-        <span class="kind-badge ${e.kind==="STL"?"stl":e.kind==="NAMED"?"named":""}">${esc(e.kind)}</span>
+        <span class="kind-badge ${e.kind==="STL"?"stl":""}">${esc(e.kind)}</span>
         ${e.snap? `<button class="lr-load" data-i="${i}">Load</button><button class="lr-load lr-dl" data-i="${i}" title="Regenerate & download">↓ ${e.kind==="SCAD"?"scad":e.kind==="JSON"?"json":"stl"}</button>`:""}
       </div>
     </div>`;
   }).join("");
   rows.querySelectorAll(".lr-load:not(.lr-dl)").forEach(b=>{
     b.addEventListener("click",()=>{
-      const e = source[+b.dataset.i];
+      const e = list[+b.dataset.i];
       if(!e || !e.snap) return;
       Object.assign(state, e.snap);
       partLabel = e.name || "";
@@ -1085,33 +1076,14 @@ function renderLog(){
     });
   });
   rows.querySelectorAll(".lr-dl").forEach(b=>{
-    b.addEventListener("click",()=>{ const e=source[+b.dataset.i]; if(e) downloadFromEntry(e); });
+    b.addEventListener("click",()=>{ const e=list[+b.dataset.i]; if(e) downloadFromEntry(e); });
   });
 }
-$("#scopeMine").addEventListener("click",()=>{
-  logScope="mine";
-  $("#scopeMine").classList.add("on"); $("#scopeTeam").classList.remove("on");
-  renderLog();
-});
-$("#scopeTeam").addEventListener("click",()=>{
-  logScope="team";
-  $("#scopeTeam").classList.add("on"); $("#scopeMine").classList.remove("on");
-  loadTeam();
-});
 $("#logSearch").addEventListener("input",renderLog);
-// naming: typing a name logs it (debounced), and updates the filename preview
-let nameTimer=null;
+// naming: updates the filename preview only — logging happens on download
 $("#partLabel").addEventListener("input",e=>{
   partLabel = e.target.value;
   updateNamePreview();
-  clearTimeout(nameTimer);
-  if(sanitizeName(partLabel)){
-    nameTimer = setTimeout(()=>{
-      const top = logEntries[0];
-      if(top && top.kind==="NAMED" && top.name===sanitizeName(partLabel)) return;
-      addLog("NAMED", fileBase());
-    }, 1200);
-  }
 });
 
 /* ========== STL mesh generation ========== */
@@ -1510,9 +1482,15 @@ function flash(msg){
 
 /* ========== init ========== */
 applyModeFields(); buildPresets(); buildDetails(); render();
+if(LOG_CSV_URL) $("#rawCsvLink").href = LOG_CSV_URL;
 logStore.load().then(entries=>{
-  if(Array.isArray(entries)){ logEntries = entries; }
-  $("#logCount").textContent = logEntries.length;
+  if(Array.isArray(entries) && entries.length){
+    const have = new Set(logEntries.map(e=>e.kind+"|"+e.file+"|"+Math.round(e.t/1000)));
+    entries.forEach(e=>{ if(!have.has(e.kind+"|"+e.file+"|"+Math.round(e.t/1000))) logEntries.push(e); });
+    logEntries.sort((a,b)=>b.t-a.t);
+  }
+  updateLogCount();
+  loadTeam(); // pull shared CSV so the count and log reflect everyone
 });
 </script>
 </body>

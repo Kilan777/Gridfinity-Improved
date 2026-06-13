@@ -35,7 +35,7 @@ function doPost(e) {
     var esc = function (v) { v = String(v == null ? "" : v); return '"' + v.replace(/"/g, '""') + '"'; };
     csv += [
       new Date(d.t || Date.now()).toISOString(),
-      String(d.by   || "").slice(0, 40),
+      "",  // (by) unused — single shared log
       String(d.kind || "").slice(0, 10),
       String(d.name || "").slice(0, 120),
       String(d.file || "").slice(0, 200),
