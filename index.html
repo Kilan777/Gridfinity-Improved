@@ -456,6 +456,11 @@ footer a:hover{color:var(--accent-dark);border-color:var(--accent-dark)}
         <button class="btn" id="dlJson">.json</button>
         <button class="btn" id="copyBtn">Copy settings</button>
       </div>
+      <div class="out-actions" style="padding-top:0">
+        <button class="btn" id="logIt" style="border-color:var(--green);color:var(--green);box-shadow:3px 3px 0 rgba(31,122,77,.3)">＋ Log it</button>
+        <button class="btn" id="logOver" style="border-color:var(--blue);color:var(--blue);box-shadow:3px 3px 0 rgba(45,106,159,.3)">⟳ Write over a log</button>
+        <span class="ai-status" id="logActionMsg" style="align-self:center"></span>
+      </div>
       <p class="out-note">STL is generated right here and prints as-is — the minimum lip is approximated flat. For the exact lip profile, render the .scad with the <a href="https://github.com/ostat/gridfinity_extended_openscad" target="_blank" rel="noopener">gridfinity_extended</a> repo.</p>
       <pre class="settings-pre" id="settingsPre" aria-label="Generated settings"></pre>
     </div>
@@ -973,43 +978,89 @@ function snapshot(){
 function sizeText(){
   return state.mode==="baseplate" ? `${Math.round(state.w)}×${Math.round(state.d)}` : `${state.w}×${state.d}×${state.h}`;
 }
-function addLog(kind, file){
-  const top = teamEntries[0];
-  if(top && top.kind===kind && top.file===file && Date.now()-top.t < 4000) return; // de-dupe double clicks
-  const entry = {
+let overwriteTarget = null; // entry chosen via Load, for "Write over a log"
+function currentEntryData(){
+  return {
     t: Date.now(),
-    kind,                                  // "STL" | "SCAD" | "JSON"
-    name: sanitizeName(partLabel) || null,
-    file,
+    kind: "STL",
+    name: sanitizeName(partLabel) || partName(),
+    file: fileBase()+".stl",
     mode: state.mode,
     size: sizeText(),
     cap: capacityText() || null,
     snap: snapshot()
   };
-  if(SB.on()){
-    // insert and let Supabase be the single source of truth
-    fetch(SB.url+"/rest/v1/log", {
-      method:"POST",
-      headers:SB.headers({Prefer:"return=representation"}),
-      body: JSON.stringify({
-        t:entry.t, kind:entry.kind, name:entry.name, file:entry.file,
-        mode:entry.mode, size:entry.size, capacity:entry.cap, snap:entry.snap
-      })
-    }).then(r=>r.ok?r.json():null).then(rows=>{
-      if(rows && rows[0]){
-        const row=rows[0];
-        teamEntries.unshift({ id:row.id, t:+row.t||Date.now(), kind:row.kind, name:row.name,
-          file:row.file, mode:row.mode, size:row.size, cap:row.capacity, snap:row.snap });
-        updateLogCount();
-        if(!$("#logPanel").classList.contains("hide")) renderLog();
-      } else { loadTeam(); }
-    }).catch(()=>{});
-  } else {
-    // no database configured: keep it in memory only for this session
-    teamEntries.unshift(entry);
-    updateLogCount();
+}
+function logMsg(txt, isErr){
+  const m=$("#logActionMsg"); m.textContent=txt; m.classList.toggle("err",!!isErr);
+  if(txt) setTimeout(()=>{ if(m.textContent===txt) m.textContent=""; },3500);
+}
+// "Log it" — insert a brand-new row
+function logNew(){
+  const e = currentEntryData();
+  if(!SB.on()){
+    teamEntries.unshift(e); updateLogCount();
     if(!$("#logPanel").classList.contains("hide")) renderLog();
+    logMsg("Logged."); return;
   }
+  fetch(SB.url+"/rest/v1/log", {
+    method:"POST", headers:SB.headers({Prefer:"return=representation"}),
+    body: JSON.stringify({ t:e.t, kind:e.kind, name:e.name, file:e.file, mode:e.mode, size:e.size, capacity:e.cap, snap:e.snap })
+  }).then(r=>r.ok?r.json():Promise.reject()).then(rows=>{
+    if(rows&&rows[0]){ const row=rows[0];
+      teamEntries.unshift({ id:row.id, t:+row.t||Date.now(), kind:row.kind, name:row.name, file:row.file, mode:row.mode, size:row.size, cap:row.capacity, snap:row.snap });
+      updateLogCount(); if(!$("#logPanel").classList.contains("hide")) renderLog();
+    }
+    logMsg("Logged as new entry.");
+  }).catch(()=>logMsg("Couldn't log — check connection.",true));
+}
+// "Write over a log" — archive the target as "old <date> <name>", then update it in place
+function oldStamp(name){
+  const d=new Date();
+  const ds=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  return "old "+ds+" "+(name||"");
+}
+async function logOverwrite(){
+  if(!overwriteTarget){ logMsg("Load an entry first, then write over it.",true); return; }
+  if(!SB.on()){ logMsg("No database configured.",true); return; }
+  if(!authed){ logMsg("Sign in with the key icon to overwrite a log.",true); openLogin(); return; }
+  const tgt = overwriteTarget;
+  const fresh = currentEntryData();
+  try{
+    // 1. archive the current target row as a separate "old ..." entry
+    const archiveName = oldStamp(tgt.name);
+    const ar = await fetch(SB.url+"/rest/v1/log", {
+      method:"POST", headers:SB.headers({Prefer:"return=representation"}),
+      body: JSON.stringify({ t:tgt.t||Date.now(), kind:tgt.kind, name:archiveName,
+        file:tgt.file, mode:tgt.mode, size:tgt.size, capacity:tgt.cap, snap:tgt.snap })
+    });
+    const arows = ar.ok? await ar.json() : null;
+    // 2. overwrite the target row in place with the new version (keeps clean name + same id)
+    const ur = await fetch(SB.url+"/rest/v1/log?id=eq."+tgt.id, {
+      method:"PATCH", headers:SB.headers({Prefer:"return=representation"}),
+      body: JSON.stringify({ t:fresh.t, kind:fresh.kind, name:tgt.name,
+        file:fresh.file, mode:fresh.mode, size:fresh.size, capacity:fresh.cap, snap:fresh.snap })
+    });
+    if(!ur.ok) throw 0;
+    const urows = await ur.json();
+    // reflect locally
+    if(arows&&arows[0]){ const a=arows[0];
+      teamEntries.unshift({ id:a.id, t:+a.t||Date.now(), kind:a.kind, name:a.name, file:a.file, mode:a.mode, size:a.size, cap:a.capacity, snap:a.snap }); }
+    if(urows&&urows[0]){ const u=urows[0];
+      const idx=teamEntries.findIndex(x=>x.id===tgt.id);
+      const upd={ id:u.id, t:+u.t||Date.now(), kind:u.kind, name:u.name, file:u.file, mode:u.mode, size:u.size, cap:u.capacity, snap:u.snap };
+      if(idx>=0) teamEntries[idx]=upd; }
+    updateLogCount(); if(!$("#logPanel").classList.contains("hide")) renderLog();
+    logMsg('Updated "'+tgt.name+'" — previous version archived.');
+    overwriteTarget=null; updateOverBtn();
+  }catch(e){ logMsg("Couldn't write over — are you signed in?",true); loadTeam(); }
+}
+$("#logIt").addEventListener("click",logNew);
+$("#logOver").addEventListener("click",logOverwrite);
+function updateOverBtn(){
+  const b=$("#logOver");
+  if(overwriteTarget){ b.textContent='⟳ Write over "'+(overwriteTarget.name||"entry")+'"'; b.disabled=false; }
+  else { b.textContent="⟳ Write over a log"; }
 }
 let teamEntries = [];
 function parseCSV(text){
@@ -1066,7 +1117,6 @@ function downloadFromEntry(e){
     if(kind==="SCAD") download(fn, scadText(), "text/plain");
     else if(kind==="JSON") download(fn, jsonText(), "application/json");
     else { fn = fn.replace(/\.(scad|json)$/i,".stl"); download(fn, writeSTL(buildMesh()), "model/stl"); }
-    addLog(kind, fn);
   }catch(err){
     alert("Couldn't regenerate this entry: "+err.message);
   }finally{
@@ -1118,7 +1168,9 @@ function renderLog(){
       Object.assign(state, e.snap);
       partLabel = e.name || "";
       $("#partLabel").value = partLabel;
+      overwriteTarget = (e.id!=null) ? e : null;   // arm "Write over a log" for this entry
       setModeButtons(); applyModeFields(); syncSize(); buildPresets(); buildDetails(); render(); updateNamePreview();
+      updateOverBtn();
       setBuilder("ui");
     });
   });
@@ -1566,16 +1618,13 @@ function applyAIConfig(c){
 }
 $("#aiGo").addEventListener("click",aiGenerate);
 
-/* ========== downloads ========== */
+/* ========== downloads (plain — logging is separate) ========== */
 $("#dlStl").addEventListener("click",()=>{
   const btn=$("#dlStl"); btn.disabled=true; btn.textContent="Building…";
   setTimeout(()=>{
     try{
       if(typeof earcut!=="function") throw new Error("triangulation library failed to load — refresh the page");
-      const tris=buildMesh();
-      const fn=fileBase()+".stl";
-      download(fn, writeSTL(tris), "model/stl");
-      addLog("STL", fn);
+      download(fileBase()+".stl", writeSTL(buildMesh()), "model/stl");
     }catch(err){
       alert("STL build failed: "+err.message+"\nThe .scad download still works as a fallback.");
     }finally{
@@ -1583,16 +1632,8 @@ $("#dlStl").addEventListener("click",()=>{
     }
   },30);
 });
-$("#dlScad").addEventListener("click",()=>{
-  const fn=fileBase()+".scad";
-  download(fn, scadText(), "text/plain");
-  addLog("SCAD", fn);
-});
-$("#dlJson").addEventListener("click",()=>{
-  const fn=fileBase()+".json";
-  download(fn, jsonText(), "application/json");
-  addLog("JSON", fn);
-});
+$("#dlScad").addEventListener("click",()=>download(fileBase()+".scad", scadText(), "text/plain"));
+$("#dlJson").addEventListener("click",()=>download(fileBase()+".json", jsonText(), "application/json"));
 $("#copyBtn").addEventListener("click",async()=>{
   const plain = $("#settingsPre").innerText;
   try{ await navigator.clipboard.writeText(plain); flash("Copied"); }
