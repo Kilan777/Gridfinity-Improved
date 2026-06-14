@@ -1555,12 +1555,16 @@ Schema (omit fields that don't apply):
  "note": string       // 1-3 short sentences: your sizing math and assumptions
 }
 
-Sizing rules:
-- Usable interior per axis ≈ units*42 - 8 mm. Subtract 14 more from depth if a label shelf is on.
-- Boards on edge: pcbStyle "slots", slotLen = board long edge + 1, slotWid = board thickness + 0.4 (PCBs are usually 1.6 mm thick, so 2.0). Boards line up in rows along depth.
-- To fit N boards: needed depth ≈ N*(slotWid + 2*clearance) + (N-1)*gap. Pick the smallest 0.5-unit depth whose interior fits, and the smallest 0.5-unit width whose interior fits slotLen. Use countMode "fixed" with nx/ny matching the requested count (nx = boards per row across, ny = rows deep; usually nx=1, ny=N for edge slots... but if slotLen is short enough to fit 2+ per row, you may split, explain in note).
-- Boards lying flat: pcbStyle "pockets", slotLen = board length + 0.5, slotWid = board width + 0.5, holeDepth = board height + 1.
-- Height for pcbs: if you set holeDepth > 0, set h = ceil((holeDepth + 6.75) / 7) — slot depth plus 2 mm structural floor plus the 4.75 mm base. For edge slots pick holeDepth ≈ 35-50% of the board's standing dimension. For pockets, holeDepth = board height + 1.
+Sizing rules — work in THIS ORDER for PCB holders (the goal is the SMALLEST holder that fits the boards with a little breathing room, never "too tight", never wasteful):
+STEP 1 — define one slot from the board:
+  - Boards on edge (default): pcbStyle "slots". slotLen = board's long edge + 1. slotWid = board thickness + 0.4 (so a 1.6 mm board → 2.0; a 2 mm board → 2.4). holeDepth = how deep the board sits (convert any cm to mm first; e.g. "15 mm" → 15).
+  - Boards lying flat: pcbStyle "pockets". slotLen = board length + 0.5, slotWid = board width + 0.5, holeDepth = board height + 1.
+STEP 2 — lay out N boards. They sit in a row along the DEPTH axis, one per row (nx=1, ny=N). Use countMode "fixed", nx=1, ny=N.
+  - Effective slot block along depth = ny*(slotWid + 2*clearance) + (ny-1)*gap, with clearance 0.25 and gap 4 (≥4 for finger room).
+  - Width used = slotLen + 2*clearance.
+STEP 3 — footprint: just set w and d to rough estimates (the app will automatically shrink/grow them to the smallest size that actually fits, so don't agonize). A safe estimate: w ≈ (slotLen+10)/42, d ≈ (ny*(slotWid+4))/42, rounded to 0.5, min 1.
+STEP 4 — height must CONTAIN the slot depth: h = ceil((holeDepth + 6.75) / 7) in 7 mm units (slot depth + 2 mm floor + 4.75 mm base). Never let the slot get "capped".
+STEP 5 — sanity check: confirm ny*(slotWid+2*clearance)+(ny-1)*gap ≤ d*42-8 and slotLen+2*clearance ≤ w*42-8. If the boards genuinely can't fit even at 6 units, say so in the note. In the note, state the board count, slot size, the resulting footprint, and that it's sized to just fit.
 - If no quantity is given use countMode "auto".
 - Screw/cable bins: prefer the team's usual sizes (1.5-wide bins for small hardware, 2.5x3 or 2.5x4 at h10 for bulk). The finger-slide scoop is OFF by default everywhere — only set slide:true if the user asks to scoop or pour. Cable label is off by default.
 - Baseplates: mode "baseplate", whole units sized to the space described (divide mm by 42 and round down). Default plateStyle "minimal"; "solid" if they mention weight, sturdiness, or a loose surface.`;
@@ -1568,6 +1572,30 @@ Sizing rules:
 $("#keyToggle").addEventListener("click",()=>{
   const r=$("#keyRow"); r.hidden=!r.hidden;
 });
+function extractConfig(text){
+  let s = text.replace(/```json/gi,"").replace(/```/g,"");
+  // strip // and /* */ comments so they don't confuse brace matching or parsing
+  s = s.replace(/\/\/[^\n]*/g,"").replace(/\/\*[\s\S]*?\*\//g,"");
+  // find the first complete {...} by counting braces (string-aware)
+  const start = s.indexOf("{");
+  if(start===-1) throw new Error("no JSON found in response");
+  let depth=0, inStr=false, esc=false, end=-1;
+  for(let i=start;i<s.length;i++){
+    const ch=s[i];
+    if(inStr){
+      if(esc) esc=false;
+      else if(ch==="\\") esc=true;
+      else if(ch==='"') inStr=false;
+    } else {
+      if(ch==='"') inStr=true;
+      else if(ch==="{") depth++;
+      else if(ch==="}"){ depth--; if(depth===0){ end=i; break; } }
+    }
+  }
+  if(end===-1) throw new Error("incomplete JSON in response");
+  let obj = s.slice(start, end+1).replace(/,\s*([}\]])/g,"$1"); // drop trailing commas
+  return JSON.parse(obj);
+}
 async function aiGenerate(){
   const desc = $("#aiText").value.trim();
   const st = $("#aiStatus"), btn = $("#aiGo");
@@ -1595,8 +1623,8 @@ async function aiGenerate(){
     const data = await response.json();
     if(data.error) throw new Error(data.error.message||data.error.type||"API error");
     const text = (data.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("\n");
-    const clean = text.replace(/```json|```/g,"").trim();
-    const cfg = JSON.parse(clean);
+    console.log("AI raw response:", text);
+    const cfg = extractConfig(text);
     applyAIConfig(cfg);
     st.textContent = "Done — preview updated.";
     if(cfg.note){ $("#aiNoteText").textContent = cfg.note; $("#aiNote").style.display="block"; }
@@ -1653,6 +1681,25 @@ function applyAIConfig(c){
     if(typeof c.pcbLabel==="boolean") state.pcbLabel=c.pcbLabel;
   }
   setModeButtons(); applyModeFields(); syncSize(); buildPresets(); buildDetails(); render();
+  if(state.mode==="pcbs") autoFitPcb();
+}
+// Grow the footprint (in code) to the smallest that actually fits the slots — never trust the AI's arithmetic
+function autoFitPcb(){
+  if(state.mode!=="pcbs") return;
+  const need = ()=>{ // mm needed inside for the current slot block
+    const L=state.slotLen+state.clearance*2, W=state.slotWid+state.clearance*2, g=state.gap;
+    const nx=state.countMode==="fixed"?(state.nx||1):1, ny=state.countMode==="fixed"?(state.ny||1):1;
+    return { w: nx*L+(nx-1)*g, d: ny*W+(ny-1)*g };
+  };
+  const n=need();
+  // interior per axis = units*42 - 8 (minus 14 on depth if label). Solve for smallest 0.5-unit.
+  const labelPad = labelOn()?14:0;
+  let w = Math.max(1, Math.ceil(((n.w+8)/42)*2)/2);
+  let d = Math.max(1, Math.ceil(((n.d+8+labelPad)/42)*2)/2);
+  state.w=Math.min(6,w); state.d=Math.min(6,d);
+  // height to contain the slot depth
+  if(state.holeDepth>0) state.h=Math.max(3, Math.ceil((state.holeDepth+6.75)/7));
+  syncSize(); buildPresets(); render();
 }
 $("#aiGo").addEventListener("click",aiGenerate);
 
