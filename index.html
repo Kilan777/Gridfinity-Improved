@@ -261,11 +261,7 @@ main{
 .preview-wrap{position:sticky;top:20px}
 @media(max-width:900px){.preview-wrap{position:static}}
 .canvas{
-  padding:14px;background:
-    linear-gradient(var(--line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--line) 1px, transparent 1px),
-    #FBFDFE;
-  background-size:21px 21px;
+  padding:14px;background:#FBFDFE;
   border-bottom:1.5px solid var(--ink);
   border-radius:var(--r) var(--r) 0 0;
 }
@@ -887,11 +883,11 @@ function drawCablePreview(svg){
   s += `</g>`;
   s += `<rect x="${pad}" y="${pad}" width="${Wmm}" height="${Dmm}" rx="4" fill="#FFFFFF" stroke="#0E2A3F" stroke-width="1.6"/>`;
   s += `<rect x="${pad+2.4}" y="${pad+2.4}" width="${Wmm-4.8}" height="${Dmm-4.8}" rx="2.6" fill="none" stroke="#A9C4D6" stroke-width="0.7"/>`;
-  // slot grid: 2 across, N deep
-  const cols=2, rows=info.rows, m=5;
-  const cellW=(Wmm-4.8-m*(cols+1))/cols, cellH=(Dmm-4.8-m*(rows+1))/rows;
-  for(let c=0;c<cols;c++)for(let rI=0;rI<rows;rI++){
-    const x=pad+2.4+m+c*(cellW+m), y=pad+2.4+m+rI*(cellH+m);
+  // slots run as a single column of full-width rows — one cable per row, `slots` rows total
+  const rows=info.slots, m=4;
+  const cellW=Wmm-4.8-m*2, cellH=(Dmm-4.8-m*(rows+1))/rows;
+  for(let rI=0;rI<rows;rI++){
+    const x=pad+2.4+m, y=pad+2.4+m+rI*(cellH+m);
     s += `<rect x="${x}" y="${y}" width="${cellW}" height="${cellH}" rx="${Math.min(3,cellH/3)}" fill="#1F7A4D" opacity="0.78"/>`;
   }
   s += dim(pad, pad+Dmm+13, pad+Wmm, pad+Dmm+13, `2 u`, "h");
