@@ -390,8 +390,8 @@ footer a:hover{color:var(--accent-dark);border-color:var(--accent-dark)}
           </button>
           <button class="mode" data-mode="cables" role="radio" aria-checked="false">
             <svg class="m-pic" viewBox="0 0 60 34" aria-hidden="true"><rect x="4" y="4" width="52" height="26" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M14 24 q8-14 16 0 q8-14 16 0" fill="none" stroke="currentColor" stroke-width="2" opacity=".6"/></svg>
-            <span class="m-name">Cables &amp; bulk</span>
-            <span class="m-sub">big open bins, easy scoop</span>
+            <span class="m-name">Cables</span>
+            <span class="m-sub">ready-made boxes · pick &amp; download</span>
           </button>
           <button class="mode" data-mode="pcbs" role="radio" aria-checked="false">
             <svg class="m-pic" viewBox="0 0 60 34" aria-hidden="true"><rect x="4" y="4" width="52" height="26" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><line x1="14" y1="9" x2="14" y2="25" stroke="currentColor" stroke-width="3" opacity=".6"/><line x1="25" y1="9" x2="25" y2="25" stroke="currentColor" stroke-width="3" opacity=".6"/><line x1="36" y1="9" x2="36" y2="25" stroke="currentColor" stroke-width="3" opacity=".6"/><line x1="47" y1="9" x2="47" y2="25" stroke="currentColor" stroke-width="3" opacity=".6"/></svg>
@@ -445,7 +445,7 @@ footer a:hover{color:var(--accent-dark);border-color:var(--accent-dark)}
     <div class="card">
       <div class="canvas"><svg id="pv" viewBox="0 0 100 100" role="img" aria-label="Top-down preview of the holder"></svg></div>
       <div class="readout" id="readout"></div>
-      <div class="name-row">
+      <div class="name-row" id="nameRow">
         <label for="partLabel">Part name · used for downloads and the log</label>
         <input id="partLabel" type="text" autocomplete="off" placeholder="e.g. Interconnect v4">
         <div class="name-preview" id="namePreview"></div>
@@ -456,12 +456,12 @@ footer a:hover{color:var(--accent-dark);border-color:var(--accent-dark)}
         <button class="btn" id="dlJson">.json</button>
         <button class="btn" id="copyBtn">Copy settings</button>
       </div>
-      <div class="out-actions" style="padding-top:0">
+      <div class="out-actions" id="logActions" style="padding-top:0">
         <button class="btn" id="logIt" style="border-color:var(--green);color:var(--green);box-shadow:3px 3px 0 rgba(31,122,77,.3)">＋ Log it</button>
         <button class="btn" id="logOver" style="border-color:var(--blue);color:var(--blue);box-shadow:3px 3px 0 rgba(45,106,159,.3);display:none">⟳ Write over a log</button>
         <span class="ai-status" id="logActionMsg" style="align-self:center"></span>
       </div>
-      <p class="out-note">STL is generated right here and prints as-is — the stacking lip is approximated (a flat rim when stackable is off). For the exact lip profile, render the .scad with the <a href="https://github.com/ostat/gridfinity_extended_openscad" target="_blank" rel="noopener">gridfinity_extended</a> repo.</p>
+      <p class="out-note" id="outNote">STL is generated right here and prints as-is — the stacking lip is approximated (a flat rim when stackable is off). For the exact lip profile, render the .scad with the <a href="https://github.com/ostat/gridfinity_extended_openscad" target="_blank" rel="noopener">gridfinity_extended</a> repo.</p>
       <pre class="settings-pre" id="settingsPre" aria-label="Generated settings"></pre>
     </div>
   </section>
@@ -519,7 +519,7 @@ const state = {
   w:1.5, d:1.5, h:6,
   stackable:true,
   divX:1, divY:1, label:true, screwSlide:false,
-  cableDiv:1, cableLabel:false, slide:false, cableMode:"count", cableSlot:30,
+  cableDiv:1, cableLabel:false, slide:false, cableMode:"count", cableSlot:30, cableSize:"2x1",
   pcbStyle:"slots",
   slotLen:35, slotWid:2,
   gap:4, clearance:0,
@@ -527,6 +527,18 @@ const state = {
   holeDepth:20, pcbLabel:false,
   plateStyle:"minimal", plateWeight:false
 };
+
+// Cables are no longer generated — they're ready-made STL files in /cables, pick one and download.
+const CABLE_SIZES = [
+  {id:"2x1", rows:1, slots:2},
+  {id:"2x2", rows:2, slots:4},
+  {id:"2x3", rows:3, slots:6},
+  {id:"2x4", rows:4, slots:8},
+  {id:"2x5", rows:5, slots:10},
+  {id:"2x6", rows:6, slots:12},
+];
+const cableSizeInfo = ()=> CABLE_SIZES.find(c=>c.id===state.cableSize) || CABLE_SIZES[0];
+const cableFile = ()=> `cables/CableOrganizingBox_${cableSizeInfo().id}.stl`;
 
 const PRESETS = {
   screws:[
@@ -585,6 +597,11 @@ document.querySelectorAll(".mode").forEach(b=>{
 function applyModeFields(){
   const bp = state.mode==="baseplate";
   const pcb = state.mode==="pcbs";
+  const cab = state.mode==="cables";
+  // Cables are picked from ready-made files — no footprint, no generated-output controls.
+  $("#footprintCard").classList.toggle("hide", cab);
+  ["#dlScad","#dlJson","#copyBtn","#nameRow","#logActions","#outNote","#settingsPre"]
+    .forEach(sel=>{ const el=$(sel); if(el) el.classList.toggle("hide", cab); });
   // height is hidden for baseplates (no height) and PCBs (height comes from slot depth)
   $("#hField").classList.toggle("hide", bp || pcb);
   $("#w").step = bp?1:0.5; $("#d").step = bp?1:0.5;
@@ -601,7 +618,11 @@ function applyModeFields(){
   const fc=$("#footprintCard"), dc=$("#detailCard");
   if(fc && dc){
     const fStep=fc.querySelector(".step"), dStep=dc.querySelector(".step");
-    if(pcb){
+    if(cab){
+      // footprint card is hidden — the size picker is the only step after the type picker
+      if(fc.nextElementSibling!==dc) fc.parentNode.insertBefore(fc, dc);
+      if(dStep) dStep.textContent="Step 2";
+    } else if(pcb){
       if(dc.nextElementSibling!==fc) fc.parentNode.insertBefore(dc, fc);
       if(dStep) dStep.textContent="Step 2";
       if(fStep) fStep.textContent="Step 3";
@@ -672,34 +693,15 @@ function buildDetails(){
     $("#screwSlide").addEventListener("change",e=>{state.screwSlide=e.target.checked;render()});
   }
   else if(state.mode==="cables"){
-    title.textContent = "Bin layout";
-    const inn = (state.w*42 - 8).toFixed(0);
+    title.textContent = "Pick a size";
     body.innerHTML = `
-      <div class="chips">
-        <button class="chip ${state.cableMode!=="size"?"on":""}" id="cmCount">By count · pick how many</button>
-        <button class="chip ${state.cableMode==="size"?"on":""}" id="cmSize">By size · pick slot width</button>
+      <div class="chips" id="cableSizes">
+        ${CABLE_SIZES.map(c=>`<button class="chip ${state.cableSize===c.id?"on":""}" data-size="${c.id}">${c.id.replace("x","×")} · ${c.slots} cable slots</button>`).join("")}
       </div>
-      ${state.cableMode==="size"
-        ? `<div class="row">${fld("Each slot at least · mm wide","cableSlot",state.cableSlot,1,8,200)}</div>
-           <p class="hint">Interior is ~${inn} mm wide, so that makes <b>${cableCount()}</b> compartment${cableCount()===1?"":"s"}. Add width in Step 2 for more.</p>`
-        : `<div class="row">${fld("Compartments across","cableDiv",state.cableDiv,1,1,8)}</div>
-           <p class="hint">Each will be about <b>${(( state.w*42-8)/Math.max(1,state.cableDiv)).toFixed(0)}</b> mm wide.</p>`
-      }
-      <div class="togs">
-        ${tog("stackable",state.stackable,"Stackable","full stacking lip — bins nest on top, house standard")}
-        ${tog("cableLabel",state.cableLabel,"Front label shelf","off by default for cables")}
-        ${tog("slide",state.slide,"Finger-slide scoop","off by default — turn on to scoop")}
-      </div>`;
-    $("#cmCount").addEventListener("click",()=>{state.cableMode="count";buildDetails();render()});
-    $("#cmSize").addEventListener("click",()=>{state.cableMode="size";buildDetails();render()});
-    if(state.cableMode==="size"){
-      $("#cableSlot").addEventListener("input",e=>{const v=parseFloat(e.target.value);if(!isNaN(v)&&v>0){state.cableSlot=v;render()}});
-    } else {
-      $("#cableDiv").addEventListener("input",e=>{state.cableDiv=clampInt(e.target.value,1,8);render()});
-    }
-    $("#stackable").addEventListener("change",e=>{state.stackable=e.target.checked;render()});
-    $("#cableLabel").addEventListener("change",e=>{state.cableLabel=e.target.checked;render()});
-    $("#slide").addEventListener("change",e=>{state.slide=e.target.checked;render()});
+      <p class="hint">These are ready-made cable-organizer boxes. Pick a size, then hit <b>Download STL</b> on the right.</p>`;
+    body.querySelectorAll("#cableSizes .chip").forEach(b=>{
+      b.addEventListener("click",()=>{ state.cableSize=b.dataset.size; buildDetails(); render(); });
+    });
   }
   else if(state.mode==="baseplate"){
     title.textContent = "Plate style";
@@ -803,11 +805,14 @@ function render(){
   buildPresets();
   drawPreview();
   drawReadout();
-  $("#settingsPre").innerHTML = settingsHTML();
-  if(typeof updateNamePreview==="function") updateNamePreview();
+  if(state.mode!=="cables"){
+    $("#settingsPre").innerHTML = settingsHTML();
+    if(typeof updateNamePreview==="function") updateNamePreview();
+  }
 }
 function drawPreview(){
   const svg = $("#pv");
+  if(state.mode==="cables"){ drawCablePreview(svg); return; }
   const Wmm = state.w*42, Dmm = state.d*42;
   const pad = 26;
   const vw = Wmm + pad*2, vh = Dmm + pad*2 + 10;
@@ -869,6 +874,30 @@ function drawPreview(){
   s += dim(pad+Wmm+13, pad, pad+Wmm+13, pad+Dmm, `${(Dmm).toFixed(0)} mm · ${state.d} u`, "v");
   svg.innerHTML = s;
 }
+function drawCablePreview(svg){
+  // Top-down sketch of the ready-made box: 2 columns × N rows of cable slots.
+  const info = cableSizeInfo();
+  const Wmm = 2*42, Dmm = info.rows*42, pad = 26;
+  const vw = Wmm + pad*2, vh = Dmm + pad*2 + 10;
+  svg.setAttribute("viewBox",`0 0 ${vw} ${vh}`);
+  let s = `<g stroke="#A9C4D6" stroke-width="0.5" fill="none">`;
+  const g0x = pad - Math.ceil(pad/42)*42, g0y = pad - Math.ceil(pad/42)*42;
+  for(let gx=g0x; gx<vw; gx+=42) for(let gy=g0y; gy<vh; gy+=42)
+    s += `<rect x="${gx}" y="${gy}" width="42" height="42" rx="2"/>`;
+  s += `</g>`;
+  s += `<rect x="${pad}" y="${pad}" width="${Wmm}" height="${Dmm}" rx="4" fill="#FFFFFF" stroke="#0E2A3F" stroke-width="1.6"/>`;
+  s += `<rect x="${pad+2.4}" y="${pad+2.4}" width="${Wmm-4.8}" height="${Dmm-4.8}" rx="2.6" fill="none" stroke="#A9C4D6" stroke-width="0.7"/>`;
+  // slot grid: 2 across, N deep
+  const cols=2, rows=info.rows, m=5;
+  const cellW=(Wmm-4.8-m*(cols+1))/cols, cellH=(Dmm-4.8-m*(rows+1))/rows;
+  for(let c=0;c<cols;c++)for(let rI=0;rI<rows;rI++){
+    const x=pad+2.4+m+c*(cellW+m), y=pad+2.4+m+rI*(cellH+m);
+    s += `<rect x="${x}" y="${y}" width="${cellW}" height="${cellH}" rx="${Math.min(3,cellH/3)}" fill="#1F7A4D" opacity="0.78"/>`;
+  }
+  s += dim(pad, pad+Dmm+13, pad+Wmm, pad+Dmm+13, `2 u`, "h");
+  s += dim(pad+Wmm+13, pad, pad+Wmm+13, pad+Dmm, `${info.rows} u`, "v");
+  svg.innerHTML = s;
+}
 function dim(x1,y1,x2,y2,txt,o){
   const tickA = o==="h"?`M ${x1} ${y1-3} L ${x1} ${y1+3} M ${x2} ${y2-3} L ${x2} ${y2+3}`:`M ${x1-3} ${y1} L ${x1+3} ${y1} M ${x2-3} ${y2} L ${x2+3} ${y2}`;
   let t;
@@ -878,6 +907,14 @@ function dim(x1,y1,x2,y2,txt,o){
 }
 function drawReadout(){
   const r = $("#readout");
+  if(state.mode==="cables"){
+    const info = cableSizeInfo();
+    r.innerHTML = `
+      <div><span>size</span><b>${info.id.replace("x","×")}</b></div>
+      <div><span>cable slots</span><b>${info.slots}</b></div>
+      <div><span>file</span><b>CableOrganizingBox_${info.id}.stl</b></div>`;
+    return;
+  }
   const Wmm=(state.w*42).toFixed(0), Dmm=(state.d*42).toFixed(0), Hmm=(state.h*7).toFixed(0);
   if(state.mode==="baseplate"){
     const T = state.plateStyle==="solid"?6.1:4.7;
@@ -1026,7 +1063,7 @@ function updateNamePreview(){
 
 /* ========== build log ========== */
 function snapshot(){
-  const keys=["mode","w","d","h","stackable","divX","divY","label","screwSlide","cableDiv","cableLabel","slide","cableMode","cableSlot",
+  const keys=["mode","w","d","h","stackable","divX","divY","label","screwSlide","cableDiv","cableLabel","slide","cableMode","cableSlot","cableSize",
     "pcbStyle","slotLen","slotWid","gap","clearance","countMode","nx","ny","pcbCount","holeDepth","pcbLabel",
     "plateStyle","plateWeight"];
   const s={}; keys.forEach(k=>s[k]=state[k]); return s;
@@ -1600,7 +1637,7 @@ Schema (omit fields that don't apply):
  "h": integer,  // height in 7 mm units, range 2-20 (not used for baseplates)
  "stackable": boolean,  // full stacking lip so bins nest on top — default true (house standard); not used for baseplates
  "divX": int, "divY": int, "label": boolean,            // screws mode: compartments across / deep
- "cableDiv": int, "cableSlot": number, "slide": boolean, "cableLabel": boolean,  // cables: set EITHER cableDiv (count) OR cableSlot (min mm per compartment). slide & label default false.
+ "cableSize": "2x1" | "2x2" | "2x3" | "2x4" | "2x5" | "2x6",  // cables: a ready-made box. 2x1=2 slots, 2x2=4, 2x3=6, 2x4=8, 2x5=10, 2x6=12 (slots = 2 per row). Pick the size whose slot count fits the number of cables.
  "plateStyle": "minimal" | "solid", "plateWeight": boolean,  // baseplate mode
  "pcbStyle": "slots" | "pockets",
  "slotLen": number,   // mm, slot long dimension
@@ -1620,7 +1657,8 @@ STEP 1 — define one slot from the board:
 STEP 2 — set "count" to the number of boards (if no quantity is given, use 1). Use clearance 0 and gap 4 (≥4 for finger room) unless the user asks otherwise. The app arranges the boards into the smallest grid that fits and sets the footprint.
 STEP 3 — the height is derived from holeDepth automatically (h = ceil((holeDepth + 6.75)/7), i.e. slot depth + 2 mm floor + 4.75 mm base), so leave h out.
 STEP 4 — in the note, state the board count, the slot size, and the slot depth.
-- Screw/cable bins: prefer the team's usual sizes (1.5-wide bins for small hardware, 2.5x3 or 2.5x4 at h10 for bulk). The finger-slide scoop is OFF by default everywhere — only set slide:true if the user asks to scoop or pour. Cable label is off by default.
+- Screw bins: prefer the team's usual sizes (1.5-wide bins for small hardware). The finger-slide scoop is OFF by default everywhere — only set slide:true if the user asks to scoop or pour.
+- Cables: pick a ready-made box (cableSize). Each box holds 2 cables per row: 2x1=2, 2x2=4, 2x3=6, 2x4=8, 2x5=10, 2x6=12. Choose the smallest size whose slot count covers the cables described (default 2x1 if no count given). Set ONLY mode and cableSize.
 - Baseplates: mode "baseplate", whole units sized to the space described (divide mm by 42 and round down). Default plateStyle "minimal"; "solid" if they mention weight, sturdiness, or a loose surface.`;
 
 $("#keyToggle").addEventListener("click",()=>{
@@ -1718,10 +1756,7 @@ function applyAIConfig(c){
     if(typeof c.slide==="boolean") state.screwSlide=c.slide;
   }
   if(state.mode==="cables"){
-    if(isFinite(c.cableDiv)){ state.cableDiv=clampInt(c.cableDiv,1,8); state.cableMode="count"; }
-    if(isFinite(c.cableSlot)&&c.cableSlot>0){ state.cableSlot=+(+c.cableSlot).toFixed(0); state.cableMode="size"; }
-    if(typeof c.slide==="boolean") state.slide=c.slide;
-    if(typeof c.cableLabel==="boolean") state.cableLabel=c.cableLabel;
+    if(typeof c.cableSize==="string" && CABLE_SIZES.some(s=>s.id===c.cableSize)) state.cableSize=c.cableSize;
   }
   if(state.mode==="pcbs"){
     if(c.pcbStyle==="slots"||c.pcbStyle==="pockets") state.pcbStyle=c.pcbStyle;
@@ -1764,6 +1799,14 @@ $("#aiGo").addEventListener("click",aiGenerate);
 
 /* ========== downloads (plain — logging is separate) ========== */
 $("#dlStl").addEventListener("click",()=>{
+  if(state.mode==="cables"){
+    // ready-made file — just download it, nothing to generate
+    const id = cableSizeInfo().id;
+    const a = document.createElement("a");
+    a.href = cableFile(); a.download = `CableOrganizingBox_${id}.stl`;
+    document.body.appendChild(a); a.click(); a.remove();
+    return;
+  }
   const btn=$("#dlStl"); btn.disabled=true; btn.textContent="Building…";
   setTimeout(()=>{
     try{
