@@ -407,7 +407,7 @@ footer a:hover{color:var(--accent-dark);border-color:var(--accent-dark)}
       </div>
     </div>
 
-    <div class="card ui-only">
+    <div class="card ui-only" id="footprintCard">
       <div class="card-h"><span class="step">Step 2</span><h2>Footprint</h2></div>
       <div class="card-b">
         <div class="chips" id="presetChips"></div>
@@ -522,9 +522,9 @@ const state = {
   cableDiv:1, cableLabel:false, slide:false, cableMode:"count", cableSlot:30,
   pcbStyle:"slots",
   slotLen:35, slotWid:2,
-  gap:4, clearance:0.25,
-  countMode:"auto", nx:0, ny:0,
-  holeDepth:0, pcbLabel:false,
+  gap:4, clearance:0,
+  countMode:"auto", nx:0, ny:0, pcbCount:6,
+  holeDepth:20, pcbLabel:false,
   plateStyle:"minimal", plateWeight:false
 };
 
@@ -579,18 +579,38 @@ document.querySelectorAll(".mode").forEach(b=>{
     Object.assign(state,{w:p.w,d:p.d});
     if(p.h!==undefined) state.h=p.h;
     setModeButtons(); applyModeFields(); syncSize(); buildPresets(); buildDetails(); render();
+    if(state.mode==="pcbs") autoFitPcb();
   });
 });
 function applyModeFields(){
   const bp = state.mode==="baseplate";
-  $("#hField").classList.toggle("hide",bp);
+  const pcb = state.mode==="pcbs";
+  // height is hidden for baseplates (no height) and PCBs (height comes from slot depth)
+  $("#hField").classList.toggle("hide", bp || pcb);
   $("#w").step = bp?1:0.5; $("#d").step = bp?1:0.5;
   $("#w").min = bp?1:0.5;  $("#d").min = bp?1:0.5;
   $("#w").max = bp?8:6;    $("#d").max = bp?8:6;
   $("#sizeHint").innerHTML = bp
     ? `Baseplates are whole units only — 1 u = 42 mm. Half-pitch bins still land anywhere on a standard plate.`
+    : pcb
+    ? `Auto-sized to the smallest grid that fits your boards — bump it up if you want more room. Height comes from the slot depth. 1 u = 42 mm.`
     : `Half-grid sizes work because <b>half pitch</b> is on by default. 1 u = 42 mm footprint, 7 mm tall.`;
   if(bp){ state.w=Math.max(1,Math.round(state.w)); state.d=Math.max(1,Math.round(state.d)); }
+  // PCB flow reads better as: pick the boards (slot layout) → footprint follows. So for
+  // PCBs we put the detail card before the footprint card and renumber the steps.
+  const fc=$("#footprintCard"), dc=$("#detailCard");
+  if(fc && dc){
+    const fStep=fc.querySelector(".step"), dStep=dc.querySelector(".step");
+    if(pcb){
+      if(dc.nextElementSibling!==fc) fc.parentNode.insertBefore(dc, fc);
+      if(dStep) dStep.textContent="Step 2";
+      if(fStep) fStep.textContent="Step 3";
+    } else {
+      if(fc.nextElementSibling!==dc) fc.parentNode.insertBefore(fc, dc);
+      if(fStep) fStep.textContent="Step 2";
+      if(dStep) dStep.textContent="Step 3";
+    }
+  }
 }
 
 /* ========== presets / size ========== */
@@ -604,6 +624,7 @@ function buildPresets(){
     c.addEventListener("click",()=>{
       Object.assign(state,{w:p.w,d:p.d});
       if(p.h!==undefined) state.h=p.h;
+      if(state.mode==="pcbs") pcbDeriveHeight();   // height stays driven by slot depth
       syncSize(); buildPresets(); render();
     });
     box.appendChild(c);
@@ -709,44 +730,26 @@ function buildDetails(){
         ${fld("Clearance · mm","clearance",state.clearance,0.05,0,1)}
       </div>
       <div class="row" style="margin-top:12px">
-        <div class="field"><label for="countMode">Slot count</label>
-          <select id="countMode">
-            <option value="auto" ${state.countMode==="auto"?"selected":""}>Auto — fill the bin</option>
-            <option value="fixed" ${state.countMode==="fixed"?"selected":""}>Fixed count</option>
-          </select>
-        </div>
-        ${state.countMode==="fixed"?fld("Count across","nx",state.nx||1,1,1,30)+fld("Count deep","ny",state.ny||1,1,1,30):""}
-        ${fld("Slot depth · mm (0 = full bin)","holeDepth",state.holeDepth,0.5,0,120)}
+        ${fld("Number of boards","pcbCount",state.pcbCount,1,1,200)}
+        ${fld("Slot depth · mm","holeDepth",state.holeDepth,0.5,2,120)}
       </div>
       <div class="togs">
         ${tog("stackable",state.stackable,"Stackable","full stacking lip — bins nest on top, house standard")}
         ${tog("pcbLabel",state.pcbLabel,"Front label shelf","usually off for PCB blocks")}
       </div>
-      <p class="hint">Set a slot depth and the bin <b>height auto-sizes</b>: depth + 2 mm floor + the gridfinity base, rounded up to 7 mm units. At 0, slots run the full height you picked in Step 2. Interconnect lesson learned: slot width ≥ <b>2 mm</b>, gap ≥ <b>4 mm</b> for finger room.</p>`;
-    $("#stSlots").addEventListener("click",()=>{state.pcbStyle="slots";state.slotLen=35;state.slotWid=2;buildDetails();render()});
-    $("#stPockets").addEventListener("click",()=>{state.pcbStyle="pockets";state.slotLen=33.8;state.slotWid=17.5;buildDetails();render()});
+      <p class="hint">The boards define the bin: the <b>footprint auto-fits</b> them (adjust it in Step 3) and the <b>height comes from the slot depth</b> — depth + 2 mm floor + the gridfinity base, rounded up to 7 mm units. Slot width ≥ <b>2 mm</b>, gap ≥ <b>4 mm</b> for finger room; clearance is per side (0 by default).</p>`;
+    $("#stSlots").addEventListener("click",()=>{state.pcbStyle="slots";state.slotLen=35;state.slotWid=2;buildDetails();autoFitPcb()});
+    $("#stPockets").addEventListener("click",()=>{state.pcbStyle="pockets";state.slotLen=33.8;state.slotWid=17.5;buildDetails();autoFitPcb()});
     ["slotLen","slotWid","gap","clearance"].forEach(k=>{
-      $("#"+k).addEventListener("input",e=>{const v=parseFloat(e.target.value);if(!isNaN(v)&&v>=0){state[k]=v;render()}});
+      $("#"+k).addEventListener("input",e=>{const v=parseFloat(e.target.value);if(!isNaN(v)&&v>=0){state[k]=v;autoFitPcb()}});
     });
+    $("#pcbCount").addEventListener("input",e=>{state.pcbCount=clampInt(e.target.value,1,200);autoFitPcb()});
     $("#holeDepth").addEventListener("input",e=>{
       const v=parseFloat(e.target.value);
-      if(!isNaN(v)&&v>=0){
-        state.holeDepth=v;
-        if(v>0){
-          // auto height: slot depth + 2 mm structural floor + 4.75 mm gridfinity base, rounded up to 7 mm units
-          state.h=Math.max(3, Math.ceil((v+2+4.75)/7));
-          syncSize();
-        }
-        render();
-      }
+      if(!isNaN(v)&&v>0){ state.holeDepth=v; pcbDeriveHeight(); syncSize(); render(); }
     });
     $("#stackable").addEventListener("change",e=>{state.stackable=e.target.checked;render()});
-    $("#pcbLabel").addEventListener("change",e=>{state.pcbLabel=e.target.checked;render()});
-    $("#countMode").addEventListener("change",e=>{state.countMode=e.target.value;buildDetails();render()});
-    if(state.countMode==="fixed"){
-      $("#nx").addEventListener("input",e=>{state.nx=clampInt(e.target.value,1,30);render()});
-      $("#ny").addEventListener("input",e=>{state.ny=clampInt(e.target.value,1,30);render()});
-    }
+    $("#pcbLabel").addEventListener("change",e=>{state.pcbLabel=e.target.checked;autoFitPcb()});
   }
 }
 function clampInt(v,a,b){v=parseInt(v,10);if(isNaN(v))return a;return Math.max(a,Math.min(b,v))}
@@ -769,17 +772,24 @@ function slideOn(){ // scoop: off by default, per-mode toggle
   return false; // pcbs/baseplate never
 }
 function innerMM(){ return { w: state.w*42 - 8, d: state.d*42 - 8 - (labelOn()?14:0) }; }
+// Place exactly `pcbCount` boards row-major into the current footprint: as many columns
+// as fit across the width, wrapping into rows. The footprint is auto-fit to the count in
+// autoFitPcb(), but the user can enlarge it in Step 3 and the boards re-flow here.
 function pcbLayout(){
   const inn = innerMM();
   const L = state.slotLen + state.clearance*2, W = state.slotWid + state.clearance*2, g = state.gap;
-  let nx, ny;
-  if(state.countMode==="fixed"){ nx=state.nx||1; ny=state.ny||1; }
-  else {
-    nx = Math.max(1, Math.floor((inn.w + g) / (L + g)));
-    ny = Math.max(1, Math.floor((inn.d + g) / (W + g)));
-  }
-  const fits = (nx*L + (nx-1)*g) <= inn.w + 0.01 && (ny*W + (ny-1)*g) <= inn.d + 0.01;
-  return {nx, ny, L, W, g, fits, total: nx*ny};
+  const N = Math.max(1, state.pcbCount||1);
+  const maxCols = Math.max(1, Math.floor((inn.w + g) / (L + g)));
+  const nx = Math.min(N, maxCols);
+  const ny = Math.ceil(N / nx);
+  const usedD = ny*W + (ny-1)*g;
+  const fits = L <= inn.w + 0.01 && usedD <= inn.d + 0.01;
+  return {nx, ny, N, L, W, g, fits, total: N};
+}
+// PCB bin height is driven entirely by the slot depth (no manual height field).
+function pcbDeriveHeight(){
+  if(state.mode!=="pcbs") return;
+  state.h = Math.max(3, Math.ceil((state.holeDepth + 6.75) / 7)); // depth + 2 mm floor + 4.75 mm base
 }
 
 function slotDims(){ // actual slot depth after structural clamp (2 mm floor above the 4.75 mm base)
@@ -803,9 +813,12 @@ function drawPreview(){
   const vw = Wmm + pad*2, vh = Dmm + pad*2 + 10;
   svg.setAttribute("viewBox",`0 0 ${vw} ${vh}`);
   let s = "";
-  s += `<g stroke="#A9C4D6" stroke-width="0.5">`;
-  for(let x=0;x<=Math.ceil(state.w);x++) s+=`<line x1="${pad+x*42}" y1="${pad-8}" x2="${pad+x*42}" y2="${pad+Dmm+8}"/>`;
-  for(let y=0;y<=Math.ceil(state.d);y++) s+=`<line x1="${pad-8}" y1="${pad+y*42}" x2="${pad+Wmm+8}" y2="${pad+y*42}"/>`;
+  // gridfinity 42 mm grid squares behind everything, aligned to the holder's origin (pad,pad),
+  // so a 1.5 u bin visibly covers 1.5 real cells — the true size reads at a glance for every mode
+  s += `<g stroke="#A9C4D6" stroke-width="0.5" fill="none">`;
+  const g0x = pad - Math.ceil(pad/42)*42, g0y = pad - Math.ceil(pad/42)*42;
+  for(let gx=g0x; gx<vw; gx+=42) for(let gy=g0y; gy<vh; gy+=42)
+    s += `<rect x="${gx}" y="${gy}" width="42" height="42" rx="2"/>`;
   s += `</g>`;
   s += `<rect x="${pad}" y="${pad}" width="${Wmm}" height="${Dmm}" rx="4" fill="#FFFFFF" stroke="#0E2A3F" stroke-width="1.6"/>`;
   if(state.mode==="baseplate"){
@@ -847,8 +860,9 @@ function drawPreview(){
     const regionBot = pad+Dmm-4;
     const oy = regionTop + ((regionBot-regionTop) - totD)/2;
     const col = lay.fits ? "#1F7A4D" : "#C0392B";
-    for(let i=0;i<lay.nx;i++)for(let j=0;j<lay.ny;j++){
-      s += `<rect x="${ox+i*(lay.L+lay.g)}" y="${oy+j*(lay.W+lay.g)}" width="${lay.L}" height="${lay.W}" rx="${Math.min(1.2,lay.W/3)}" fill="${col}" opacity="0.78"/>`;
+    for(let k=0;k<lay.N;k++){
+      const c=k%lay.nx, r=Math.floor(k/lay.nx);
+      s += `<rect x="${ox+c*(lay.L+lay.g)}" y="${oy+r*(lay.W+lay.g)}" width="${lay.L}" height="${lay.W}" rx="${Math.min(1.2,lay.W/3)}" fill="${col}" opacity="0.78"/>`;
     }
   }
   s += dim(pad, pad+Dmm+13, pad+Wmm, pad+Dmm+13, `${(Wmm).toFixed(0)} mm · ${state.w} u`, "h");
@@ -939,9 +953,9 @@ function params(){
     push("itemholder_hole_diameter","1","corner radius");
     push("itemholder_hole_clearance",String(state.clearance));
     push("itemholder_hole_spacing",String(state.gap));
-    push("itemholder_hole_gridx", state.countMode==="fixed"?String(state.nx||1):"0", state.countMode==="auto"?`auto → ${lay.nx}`:undefined);
-    push("itemholder_hole_gridy", state.countMode==="fixed"?String(state.ny||1):"0", state.countMode==="auto"?`auto → ${lay.ny}`:undefined);
-    push("itemholder_hole_depth",String(state.holeDepth), state.holeDepth===0?"auto":undefined);
+    push("itemholder_hole_gridx", String(lay.nx), `${state.pcbCount} boards, auto-arranged`);
+    push("itemholder_hole_gridy", String(lay.ny), undefined);
+    push("itemholder_hole_depth",String(state.holeDepth));
     push("itemholder_hole_chamfer","1","easier board entry");
     push("itemholder_grid_style",`"square"`);
     push("itemholder_auto_bin_height",`"disabled"`,"height set above");
@@ -1013,7 +1027,7 @@ function updateNamePreview(){
 /* ========== build log ========== */
 function snapshot(){
   const keys=["mode","w","d","h","stackable","divX","divY","label","screwSlide","cableDiv","cableLabel","slide","cableMode","cableSlot",
-    "pcbStyle","slotLen","slotWid","gap","clearance","countMode","nx","ny","holeDepth","pcbLabel",
+    "pcbStyle","slotLen","slotWid","gap","clearance","countMode","nx","ny","pcbCount","holeDepth","pcbLabel",
     "plateStyle","plateWeight"];
   const s={}; keys.forEach(k=>s[k]=state[k]); return s;
 }
@@ -1483,9 +1497,10 @@ function buildMesh(){
     const oy=regionY0+((regionY1-regionY0)-totD)/2;
     const ox=-totW/2;
     const holes=[];
-    for(let i=0;i<lay.nx;i++)for(let j=0;j<lay.ny;j++){
-      const cx=ox+i*(lay.L+lay.g)+lay.L/2;
-      const cy=oy+j*(lay.W+lay.g)+lay.W/2;
+    for(let k=0;k<lay.N;k++){
+      const c=k%lay.nx, r=Math.floor(k/lay.nx);
+      const cx=ox+c*(lay.L+lay.g)+lay.L/2;
+      const cy=oy+r*(lay.W+lay.g)+lay.W/2;
       holes.push(rrectPts(cx,cy,lay.L,lay.W,Math.min(1,lay.W/3),3));
     }
     wallLoop(outer, BASE, H, false, tris);
@@ -1591,24 +1606,20 @@ Schema (omit fields that don't apply):
  "slotLen": number,   // mm, slot long dimension
  "slotWid": number,   // mm, slot short dimension (board thickness for edge slots; board width for flat pockets)
  "gap": number,       // mm between boards, default 4
- "clearance": number, // per-side, default 0.25
- "countMode": "auto" | "fixed", "nx": int, "ny": int,
- "holeDepth": number, // mm, 0 = full depth
+ "clearance": number, // per-side, default 0
+ "count": int,        // PCB mode: total number of boards to hold
+ "holeDepth": number, // PCB mode: mm each board sits down — this sets the bin height (do NOT set h)
  "pcbLabel": boolean,
  "note": string       // 1-3 short sentences: your sizing math and assumptions
 }
 
-Sizing rules — work in THIS ORDER for PCB holders (the goal is the SMALLEST holder that fits the boards with a little breathing room, never "too tight", never wasteful):
+Sizing rules for PCB holders — the app auto-fits the footprint AND the height, so for PCBs you only describe the boards. Do NOT set w, d, or h; set pcbStyle, slotLen, slotWid, gap, clearance, count, holeDepth:
 STEP 1 — define one slot from the board:
   - Boards on edge (default): pcbStyle "slots". slotLen = board's long edge + 1. slotWid = board thickness + 0.4 (so a 1.6 mm board → 2.0; a 2 mm board → 2.4). holeDepth = how deep the board sits (convert any cm to mm first; e.g. "15 mm" → 15).
   - Boards lying flat: pcbStyle "pockets". slotLen = board length + 0.5, slotWid = board width + 0.5, holeDepth = board height + 1.
-STEP 2 — lay out N boards. They sit in a row along the DEPTH axis, one per row (nx=1, ny=N). Use countMode "fixed", nx=1, ny=N.
-  - Effective slot block along depth = ny*(slotWid + 2*clearance) + (ny-1)*gap, with clearance 0.25 and gap 4 (≥4 for finger room).
-  - Width used = slotLen + 2*clearance.
-STEP 3 — footprint: just set w and d to rough estimates (the app will automatically shrink/grow them to the smallest size that actually fits, so don't agonize). A safe estimate: w ≈ (slotLen+10)/42, d ≈ (ny*(slotWid+4))/42, rounded to 0.5, min 1.
-STEP 4 — height must CONTAIN the slot depth: h = ceil((holeDepth + 6.75) / 7) in 7 mm units (slot depth + 2 mm floor + 4.75 mm base). Never let the slot get "capped".
-STEP 5 — sanity check: confirm ny*(slotWid+2*clearance)+(ny-1)*gap ≤ d*42-8 and slotLen+2*clearance ≤ w*42-8. If the boards genuinely can't fit even at 6 units, say so in the note. In the note, state the board count, slot size, the resulting footprint, and that it's sized to just fit.
-- If no quantity is given use countMode "auto".
+STEP 2 — set "count" to the number of boards (if no quantity is given, use 1). Use clearance 0 and gap 4 (≥4 for finger room) unless the user asks otherwise. The app arranges the boards into the smallest grid that fits and sets the footprint.
+STEP 3 — the height is derived from holeDepth automatically (h = ceil((holeDepth + 6.75)/7), i.e. slot depth + 2 mm floor + 4.75 mm base), so leave h out.
+STEP 4 — in the note, state the board count, the slot size, and the slot depth.
 - Screw/cable bins: prefer the team's usual sizes (1.5-wide bins for small hardware, 2.5x3 or 2.5x4 at h10 for bulk). The finger-slide scoop is OFF by default everywhere — only set slide:true if the user asks to scoop or pour. Cable label is off by default.
 - Baseplates: mode "baseplate", whole units sized to the space described (divide mm by 42 and round down). Default plateStyle "minimal"; "solid" if they mention weight, sturdiness, or a loose surface.`;
 
@@ -1718,31 +1729,35 @@ function applyAIConfig(c){
     if(isFinite(c.slotWid)&&c.slotWid>0) state.slotWid=+(+c.slotWid).toFixed(1);
     if(isFinite(c.gap)&&c.gap>=1) state.gap=+(+c.gap).toFixed(1);
     if(isFinite(c.clearance)&&c.clearance>=0) state.clearance=+(+c.clearance).toFixed(2);
-    if(c.countMode==="auto"||c.countMode==="fixed") state.countMode=c.countMode;
-    if(isFinite(c.nx)) state.nx=clampInt(c.nx,1,30);
-    if(isFinite(c.ny)) state.ny=clampInt(c.ny,1,30);
-    if(isFinite(c.holeDepth)&&c.holeDepth>=0) state.holeDepth=+(+c.holeDepth).toFixed(1);
+    // board count: prefer an explicit count, else fall back to legacy nx*ny
+    if(isFinite(c.count)&&c.count>0) state.pcbCount=clampInt(c.count,1,200);
+    else if(isFinite(c.nx)||isFinite(c.ny)) state.pcbCount=clampInt((clampInt(c.nx,1,200))*(clampInt(c.ny,1,200)),1,200);
+    if(isFinite(c.holeDepth)&&c.holeDepth>0) state.holeDepth=+(+c.holeDepth).toFixed(1);
     if(typeof c.pcbLabel==="boolean") state.pcbLabel=c.pcbLabel;
   }
   setModeButtons(); applyModeFields(); syncSize(); buildPresets(); buildDetails(); render();
   if(state.mode==="pcbs") autoFitPcb();
 }
-// Grow the footprint (in code) to the smallest that actually fits the slots — never trust the AI's arithmetic
+// Size the footprint (in code) to the smallest grid that holds the requested board count.
+// Tries every columns×rows split, picks the smallest area, ties broken toward square.
 function autoFitPcb(){
   if(state.mode!=="pcbs") return;
-  const need = ()=>{ // mm needed inside for the current slot block
-    const L=state.slotLen+state.clearance*2, W=state.slotWid+state.clearance*2, g=state.gap;
-    const nx=state.countMode==="fixed"?(state.nx||1):1, ny=state.countMode==="fixed"?(state.ny||1):1;
-    return { w: nx*L+(nx-1)*g, d: ny*W+(ny-1)*g };
-  };
-  const n=need();
-  // interior per axis = units*42 - 8 (minus 14 on depth if label). Solve for smallest 0.5-unit.
+  const N = Math.max(1, state.pcbCount||1);
+  const L = state.slotLen+state.clearance*2, W = state.slotWid+state.clearance*2, g = state.gap;
   const labelPad = labelOn()?14:0;
-  let w = Math.max(1, Math.ceil(((n.w+8)/42)*2)/2);
-  let d = Math.max(1, Math.ceil(((n.d+8+labelPad)/42)*2)/2);
-  state.w=Math.min(6,w); state.d=Math.min(6,d);
-  // height to contain the slot depth
-  if(state.holeDepth>0) state.h=Math.max(3, Math.ceil((state.holeDepth+6.75)/7));
+  const unitsFor = mm => Math.max(1, Math.ceil(((mm+8)/42)*2)/2); // interior = u*42-8, snap to 0.5 u
+  let best=null;
+  for(let nx=1; nx<=N; nx++){
+    const ny = Math.ceil(N/nx);
+    const needW = nx*L + (nx-1)*g;
+    const needD = ny*W + (ny-1)*g + labelPad;
+    const wU = unitsFor(needW), dU = unitsFor(needD);
+    if(wU>6 || dU>6) continue;                 // doesn't fit the 6×6 build limit this way
+    const area = wU*dU, sq = Math.abs(wU-dU);
+    if(!best || area<best.area || (area===best.area && sq<best.sq)){ best={wU,dU,area,sq}; }
+  }
+  if(best){ state.w=best.wU; state.d=best.dU; }  // if nothing fits, leave size as-is (readout flags it)
+  pcbDeriveHeight();
   syncSize(); buildPresets(); render();
 }
 $("#aiGo").addEventListener("click",aiGenerate);
