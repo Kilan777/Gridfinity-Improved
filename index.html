@@ -431,7 +431,7 @@ footer a:hover{color:var(--accent-dark);border-color:var(--accent-dark)}
         <div><span>base screws</span><b>off</b></div>
         <div><span>base magnets</span><b>off</b></div>
         <div><span>sub pitch</span><b>half pitch</b></div>
-        <div><span>cup lip</span><b>minimum</b></div>
+        <div><span>stacking lip</span><b>on · stackable</b></div>
         <div><span>lip notches</span><b>off</b></div>
         <div><span>finger slide</span><b>rounded · r 20</b></div>
         <div><span>label depth</span><b>14 mm</b></div>
@@ -461,7 +461,7 @@ footer a:hover{color:var(--accent-dark);border-color:var(--accent-dark)}
         <button class="btn" id="logOver" style="border-color:var(--blue);color:var(--blue);box-shadow:3px 3px 0 rgba(45,106,159,.3);display:none">⟳ Write over a log</button>
         <span class="ai-status" id="logActionMsg" style="align-self:center"></span>
       </div>
-      <p class="out-note">STL is generated right here and prints as-is — the minimum lip is approximated flat. For the exact lip profile, render the .scad with the <a href="https://github.com/ostat/gridfinity_extended_openscad" target="_blank" rel="noopener">gridfinity_extended</a> repo.</p>
+      <p class="out-note">STL is generated right here and prints as-is — the stacking lip is approximated (a flat rim when stackable is off). For the exact lip profile, render the .scad with the <a href="https://github.com/ostat/gridfinity_extended_openscad" target="_blank" rel="noopener">gridfinity_extended</a> repo.</p>
       <pre class="settings-pre" id="settingsPre" aria-label="Generated settings"></pre>
     </div>
   </section>
@@ -517,6 +517,7 @@ const $ = s => document.querySelector(s);
 const state = {
   mode:"screws",
   w:1.5, d:1.5, h:6,
+  stackable:true,
   divX:1, divY:1, label:true, screwSlide:false,
   cableDiv:1, cableLabel:false, slide:false, cableMode:"count", cableSlot:30,
   pcbStyle:"slots",
@@ -638,12 +639,14 @@ function buildDetails(){
         ${fld("Dividers deep (front↔back)","divY",state.divY,1,1,8)}
       </div>
       <div class="togs">
+        ${tog("stackable",state.stackable,"Stackable","full stacking lip — bins nest on top, house standard")}
         ${tog("label",state.label,"Front label shelf","14 mm deep, house standard")}
         ${tog("screwSlide",state.screwSlide,"Finger-slide scoop","off by default — turn on for easy scooping")}
       </div>
       <p class="hint">Values are compartment counts: 2 across × 1 deep gives two side-by-side pockets.</p>`;
     $("#divX").addEventListener("input",e=>{state.divX=clampInt(e.target.value,1,8);render()});
     $("#divY").addEventListener("input",e=>{state.divY=clampInt(e.target.value,1,8);render()});
+    $("#stackable").addEventListener("change",e=>{state.stackable=e.target.checked;render()});
     $("#label").addEventListener("change",e=>{state.label=e.target.checked;render()});
     $("#screwSlide").addEventListener("change",e=>{state.screwSlide=e.target.checked;render()});
   }
@@ -662,6 +665,7 @@ function buildDetails(){
            <p class="hint">Each will be about <b>${(( state.w*42-8)/Math.max(1,state.cableDiv)).toFixed(0)}</b> mm wide.</p>`
       }
       <div class="togs">
+        ${tog("stackable",state.stackable,"Stackable","full stacking lip — bins nest on top, house standard")}
         ${tog("cableLabel",state.cableLabel,"Front label shelf","off by default for cables")}
         ${tog("slide",state.slide,"Finger-slide scoop","off by default — turn on to scoop")}
       </div>`;
@@ -672,6 +676,7 @@ function buildDetails(){
     } else {
       $("#cableDiv").addEventListener("input",e=>{state.cableDiv=clampInt(e.target.value,1,8);render()});
     }
+    $("#stackable").addEventListener("change",e=>{state.stackable=e.target.checked;render()});
     $("#cableLabel").addEventListener("change",e=>{state.cableLabel=e.target.checked;render()});
     $("#slide").addEventListener("change",e=>{state.slide=e.target.checked;render()});
   }
@@ -713,7 +718,10 @@ function buildDetails(){
         ${state.countMode==="fixed"?fld("Count across","nx",state.nx||1,1,1,30)+fld("Count deep","ny",state.ny||1,1,1,30):""}
         ${fld("Slot depth · mm (0 = full bin)","holeDepth",state.holeDepth,0.5,0,120)}
       </div>
-      <div class="togs">${tog("pcbLabel",state.pcbLabel,"Front label shelf","usually off for PCB blocks")}</div>
+      <div class="togs">
+        ${tog("stackable",state.stackable,"Stackable","full stacking lip — bins nest on top, house standard")}
+        ${tog("pcbLabel",state.pcbLabel,"Front label shelf","usually off for PCB blocks")}
+      </div>
       <p class="hint">Set a slot depth and the bin <b>height auto-sizes</b>: depth + 2 mm floor + the gridfinity base, rounded up to 7 mm units. At 0, slots run the full height you picked in Step 2. Interconnect lesson learned: slot width ≥ <b>2 mm</b>, gap ≥ <b>4 mm</b> for finger room.</p>`;
     $("#stSlots").addEventListener("click",()=>{state.pcbStyle="slots";state.slotLen=35;state.slotWid=2;buildDetails();render()});
     $("#stPockets").addEventListener("click",()=>{state.pcbStyle="pockets";state.slotLen=33.8;state.slotWid=17.5;buildDetails();render()});
@@ -732,6 +740,8 @@ function buildDetails(){
         render();
       }
     });
+    $("#stackable").addEventListener("change",e=>{state.stackable=e.target.checked;render()});
+    $("#pcbLabel").addEventListener("change",e=>{state.pcbLabel=e.target.checked;render()});
     $("#countMode").addEventListener("change",e=>{state.countMode=e.target.value;buildDetails();render()});
     if(state.countMode==="fixed"){
       $("#nx").addEventListener("input",e=>{state.nx=clampInt(e.target.value,1,30);render()});
@@ -903,7 +913,7 @@ function params(){
   push("enable_screws","false","house");
   push("enable_magnets","false","house");
   push("sub_pitch","2","house · half pitch");
-  push("lip_style",`"minimum"`,"house");
+  push("lip_style", state.stackable?`"normal"`:`"minimum"`, state.stackable?"stackable · house standard":"flat rim");
   push("lip_top_notches","false","house");
   const lab = labelOn();
   push("label_style", lab?`"normal"`:`"disabled"`);
@@ -1002,7 +1012,7 @@ function updateNamePreview(){
 
 /* ========== build log ========== */
 function snapshot(){
-  const keys=["mode","w","d","h","divX","divY","label","screwSlide","cableDiv","cableLabel","slide","cableMode","cableSlot",
+  const keys=["mode","w","d","h","stackable","divX","divY","label","screwSlide","cableDiv","cableLabel","slide","cableMode","cableSlot",
     "pcbStyle","slotLen","slotWid","gap","clearance","countMode","nx","ny","holeDepth","pcbLabel",
     "plateStyle","plateWeight"];
   const s={}; keys.forEach(k=>s[k]=state[k]); return s;
@@ -1345,6 +1355,28 @@ function wallLoop(poly, z0, z1, inward, tris){
     else tris.push([p1,p2,p3],[p1,p3,p4]);
   }
 }
+// connect two equal-count loops (A@zA → B@zB) as a side band, no end caps
+function ring(A, zA, B, zB, inward, tris){
+  const n=A.length;
+  for(let i=0;i<n;i++){
+    const j=(i+1)%n;
+    const p1=[...A[i],zA],p2=[...A[j],zA],p3=[...B[j],zB],p4=[...B[i],zB];
+    if(inward) tris.push([p1,p3,p2],[p1,p4,p3]);
+    else tris.push([p1,p2,p3],[p1,p3,p4]);
+  }
+}
+// Stacking lip on top of the body wall (z=bodyTop → z=bodyTop+4.4), mirroring the
+// gridfinity base so a bin's foot nests into it. Returns the opening polygon at the
+// body top that the caller must seal against (a ledge out to the cavity / top deck).
+// All polys use seg=6 (28 pts) to match outer/cav for ring()/wallLoop().
+function addStackLip(outer, bodyTop, W, D, tris){
+  const LIP_H=4.4, lipTop=bodyTop+LIP_H, chamZ=lipTop-1.9;
+  const lipInner=rrectPts(0,0, W-3.8, D-3.8, Math.max(0.5,3.75-1.9), 6);
+  wallLoop(outer, bodyTop, lipTop, false, tris);          // outer face of the lip
+  ring(outer, lipTop, lipInner, chamZ, false, tris);      // 45° seat the foot above rests on
+  wallLoop(lipInner, bodyTop, chamZ, true, tris);         // inner recess wall
+  return lipInner;
+}
 function capEar(outer, holes, z, up, tris){
   const flat=[], hi=[];
   outer.forEach(p=>flat.push(p[0],p[1]));
@@ -1458,7 +1490,12 @@ function buildMesh(){
     }
     wallLoop(outer, BASE, H, false, tris);
     capEar(outer, [], BASE, false, tris);
-    capEar(outer, holes, H, true, tris);
+    if(state.stackable){
+      const lipInner=addStackLip(outer, H, W, D, tris);
+      capEar(lipInner, holes, H, true, tris);   // top deck recessed inside the stacking lip
+    } else {
+      capEar(outer, holes, H, true, tris);
+    }
     holes.forEach(h=>{
       wallLoop(h, slotBot, H, true, tris);
       capEar(h, [], slotBot, true, tris);
@@ -1468,7 +1505,12 @@ function buildMesh(){
     const cav=rrectPts(0,0,W-2*WALL,D-2*WALL,2.55,6);
     wallLoop(outer, BASE, H, false, tris);
     capEar(outer, [], BASE, false, tris);
-    capEar(outer, [cav], H, true, tris);
+    if(state.stackable){
+      const lipInner=addStackLip(outer, H, W, D, tris);
+      capEar(cav, [lipInner], H, true, tris);   // ledge from the cavity rim in to the lip recess
+    } else {
+      capEar(outer, [cav], H, true, tris);
+    }
     wallLoop(cav, floorTop, H, true, tris);
     capEar(cav, [], floorTop, true, tris);
     // dividers (overlapped 0.5 mm into walls and floor)
@@ -1541,6 +1583,7 @@ Schema (omit fields that don't apply):
  "w": number,   // width in gridfinity units, multiple of 0.5, range 0.5-6 (1 unit = 42 mm). Baseplates: whole units only, 1-8.
  "d": number,   // depth, same rules
  "h": integer,  // height in 7 mm units, range 2-20 (not used for baseplates)
+ "stackable": boolean,  // full stacking lip so bins nest on top — default true (house standard); not used for baseplates
  "divX": int, "divY": int, "label": boolean,            // screws mode: compartments across / deep
  "cableDiv": int, "cableSlot": number, "slide": boolean, "cableLabel": boolean,  // cables: set EITHER cableDiv (count) OR cableSlot (min mm per compartment). slide & label default false.
  "plateStyle": "minimal" | "solid", "plateWeight": boolean,  // baseplate mode
@@ -1650,6 +1693,7 @@ function applyAIConfig(c){
   if(isFinite(c.w)) state.w=snapHalf(c.w,0.5,8);
   if(isFinite(c.d)) state.d=snapHalf(c.d,0.5,8);
   if(isFinite(c.h)) state.h=clampInt(c.h,2,20);
+  if(typeof c.stackable==="boolean") state.stackable=c.stackable;
   if(state.mode==="baseplate"){
     state.w=Math.max(1,Math.min(8,Math.round(state.w)));
     state.d=Math.max(1,Math.min(8,Math.round(state.d)));
