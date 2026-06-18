@@ -131,6 +131,22 @@ header{
 .log-empty{font-family:var(--mono);font-size:12px;color:var(--ink-soft);padding:20px 0;text-align:center}
 .log-foot{display:flex;justify-content:space-between;align-items:center;margin-top:14px}
 .log-clear{font-family:var(--mono);font-size:11px;color:var(--red);background:none;border:none;cursor:pointer;text-decoration:underline}
+/* log: upload an external STL */
+.log-upload{border:1.5px solid var(--line);border-radius:8px;padding:12px;margin-bottom:14px;background:#FBFDFE}
+.log-upload .lu-title{font-family:var(--disp);font-weight:800;font-size:12px;text-transform:uppercase;font-stretch:85%;margin-bottom:8px}
+.lu-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.lu-name{flex:2 1 200px;font-family:var(--mono);font-size:13px;border:1.5px solid var(--line-strong);border-radius:8px;padding:9px 11px;background:#fff;color:var(--ink)}
+.lu-file{flex:1 1 150px;font-family:var(--mono);font-size:12px;border:1.5px dashed var(--line-strong);border-radius:8px;padding:9px 11px;background:#fff;color:var(--ink-soft);cursor:pointer;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lu-file.has{color:var(--ink);border-style:solid}
+.lu-save{padding:9px 14px;border-color:var(--green);color:var(--green);box-shadow:3px 3px 0 rgba(31,122,77,.3)}
+.lu-msg{font-family:var(--mono);font-size:11px;color:var(--ink-soft);margin-top:8px;min-height:1em}
+.lu-msg.err{color:var(--red)}
+/* log: category filters */
+.log-filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;align-items:center}
+.log-filters .lf-lbl{font-family:var(--mono);font-size:11px;color:var(--ink-soft);margin-right:2px}
+.lf-chip{font-family:var(--mono);font-size:12px;border:1.5px solid var(--line-strong);border-radius:999px;padding:5px 13px;background:#fff;color:var(--ink-soft);cursor:pointer}
+.lf-chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.kind-badge.upload{background:#7A5AF8}
 /* name field */
 .name-row{padding:16px 18px 0}
 .name-row input{
@@ -336,10 +352,26 @@ footer a:hover{color:var(--accent-dark);border-color:var(--accent-dark)}
     <div class="card hide" id="logPanel">
       <div class="card-h"><span class="step">History</span><h2>Build log</h2></div>
       <div class="card-b">
+        <div class="log-upload" id="logUpload">
+          <div class="lu-title">Log an STL file</div>
+          <div class="lu-row">
+            <input class="lu-name" id="luName" type="text" placeholder="Name (e.g. SSR DIN rail mount)">
+            <label class="lu-file" id="luFileLabel"><input type="file" id="luFile" accept=".stl" hidden><span id="luFileName">Choose .stl…</span></label>
+            <button class="btn lu-save" id="luSave">Save to log</button>
+          </div>
+          <div class="lu-msg" id="luMsg">Upload any .stl, name it, and it's saved to the shared log under <b>other files</b>.</div>
+        </div>
+        <div class="log-filters" id="logFilters">
+          <span class="lf-lbl">show:</span>
+          <button class="lf-chip on" data-cat="bins" type="button">bins</button>
+          <button class="lf-chip on" data-cat="pcbs" type="button">pcbs</button>
+          <button class="lf-chip on" data-cat="baseplate" type="button">baseplate</button>
+          <button class="lf-chip" data-cat="other" type="button">other files</button>
+        </div>
         <input class="log-search" id="logSearch" type="search" placeholder="Search by name, type, size, date…">
         <div class="log-rows" id="logRows"></div>
         <div class="log-foot">
-          <span class="hint" style="margin:0">Use <b>＋ Log it</b> to save a part here, or <b>Write over a log</b> to update one (sign in with the key icon). <b>Load</b> reopens the exact settings, <b>↓</b> regenerates the file. The log is the shared live record — it can't be cleared from here.</span>
+          <span class="hint" style="margin:0">Use <b>＋ Log it</b> to save a generated part, or <b>Log an STL file</b> above to save any model. <b>Write over a log</b> updates one (sign in with the key icon). <b>Load</b> reopens settings, <b>↓</b> downloads the file. The log is the shared live record — it can't be cleared from here.</span>
           <button class="log-clear" id="logRefresh" style="color:var(--blue)">refresh</button>
         </div>
       </div>
@@ -1154,6 +1186,89 @@ function updateOverBtn(){
   else { b.textContent="⟳ Write over a log"; }
 }
 let teamEntries = [];
+
+/* ===== log filters (by part category) ===== */
+const STL_BUCKET = "stls"; // Supabase Storage bucket for uploaded STL files
+const logFilters = { bins:true, pcbs:true, baseplate:true, other:false };
+function isUpload(e){ return !!(e && e.snap && e.snap.__upload); }
+function entryCat(e){
+  if(isUpload(e)) return "other";
+  if(e.mode==="pcbs") return "pcbs";
+  if(e.mode==="baseplate") return "baseplate";
+  if(e.mode==="screws") return "bins";
+  return "other";
+}
+function syncFilterChips(){
+  document.querySelectorAll("#logFilters .lf-chip").forEach(c=>{
+    c.classList.toggle("on", !!logFilters[c.dataset.cat]);
+  });
+}
+function fmtBytes(n){
+  if(n==null || isNaN(n)) return "";
+  const u=["B","KB","MB"]; let i=0, v=n;
+  while(v>=1024 && i<u.length-1){ v/=1024; i++; }
+  return (i? v.toFixed(1):v)+" "+u[i];
+}
+function setFileLabel(){
+  const f=$("#luFile").files && $("#luFile").files[0];
+  const lbl=$("#luFileLabel"), span=$("#luFileName");
+  if(f){ span.textContent=f.name; lbl.classList.add("has"); if(!$("#luName").value.trim()) $("#luName").value=f.name.replace(/\.stl$/i,""); }
+  else { span.textContent="Choose .stl…"; lbl.classList.remove("has"); }
+}
+function luMsg(txt, isErr){ const m=$("#luMsg"); m.textContent=txt; m.classList.toggle("err",!!isErr); }
+// Upload an arbitrary STL to Supabase Storage and log a row that points at it.
+async function uploadStlFile(){
+  const f=$("#luFile").files && $("#luFile").files[0];
+  if(!f){ luMsg("Pick an .stl file first.",true); return; }
+  if(!/\.stl$/i.test(f.name)){ luMsg("That doesn't look like an .stl file.",true); return; }
+  if(!SB.on()){ luMsg("No database configured — can't store files.",true); return; }
+  const cleanName = sanitizeName($("#luName").value) || sanitizeName(f.name.replace(/\.stl$/i,"")) || "stl";
+  const stamp = Date.now();
+  const path = stamp+"-"+cleanName.replace(/[^\w.-]+/g,"_").slice(0,80)+".stl";
+  $("#luSave").disabled=true; luMsg("Uploading…");
+  try{
+    const buf = await f.arrayBuffer();
+    const up = await fetch(SB.url+"/storage/v1/object/"+STL_BUCKET+"/"+encodeURIComponent(path), {
+      method:"POST",
+      headers:{ apikey:SB.key, Authorization:"Bearer "+(SB.token||SB.key), "Content-Type":"model/stl", "x-upsert":"true" },
+      body: buf
+    });
+    if(!up.ok){ throw new Error((await up.text())||("HTTP "+up.status)); }
+    const publicUrl = SB.url+"/storage/v1/object/public/"+STL_BUCKET+"/"+encodeURIComponent(path);
+    const snap = { __upload:true, url:publicUrl, path:path };
+    const ins = await fetch(SB.url+"/rest/v1/log", {
+      method:"POST", headers:SB.headers({Prefer:"return=representation"}),
+      body: JSON.stringify({ t:stamp, kind:"STL", name:cleanName, file:f.name, mode:"other", size:fmtBytes(f.size), capacity:null, snap:snap })
+    });
+    if(!ins.ok) throw new Error("file stored, but couldn't write the log row");
+    const rows = await ins.json();
+    if(rows&&rows[0]){ const row=rows[0];
+      teamEntries.unshift({ id:row.id, t:+row.t||stamp, kind:row.kind, name:row.name, file:row.file, mode:row.mode, size:row.size, cap:row.capacity, snap:row.snap });
+    }
+    updateLogCount();
+    logFilters.other=true; syncFilterChips(); // surface the entry they just added
+    renderLog();
+    luMsg('Saved "'+cleanName+'" to the log.');
+    $("#luName").value=""; $("#luFile").value=""; setFileLabel();
+  }catch(err){
+    luMsg("Upload failed: "+(err.message||err), true);
+  }finally{ $("#luSave").disabled=false; }
+}
+// Pull a stored STL back down (the ↓ button on an uploaded entry).
+async function downloadUpload(e){
+  const url = e.snap && e.snap.url;
+  if(!url){ alert("No stored file URL for this entry."); return; }
+  try{
+    const r = await fetch(url, {cache:"no-store"});
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    download(e.file || "model.stl", await r.arrayBuffer(), "model/stl");
+  }catch(err){ alert("Couldn't download the file: "+(err.message||err)); }
+}
+async function sbDeleteStorage(path){
+  try{ await fetch(SB.url+"/storage/v1/object/"+STL_BUCKET+"/"+encodeURIComponent(path), {
+    method:"DELETE", headers:{ apikey:SB.key, Authorization:"Bearer "+(SB.token||SB.key) } }); }catch(e){}
+}
+
 function parseCSV(text){
   const rows=[]; let row=[], cur="", inQ=false;
   for(let i=0;i<text.length;i++){
@@ -1225,24 +1340,37 @@ function renderLog(){
   const rows = $("#logRows");
   const source = mergedLog();
   const list = source.filter(e=>{
+    if(!logFilters[entryCat(e)]) return false;
     if(!q) return true;
     const hay = [e.name, e.file, e.kind, e.mode, e.size, e.cap, fmtDate(e.t)].filter(Boolean).join(" ").toLowerCase();
     return hay.includes(q);
   });
   if(!list.length){
-    rows.innerHTML = `<div class="log-empty">${q? "Nothing matches “"+q.replace(/</g,"&lt;")+"”" : "Nothing saved yet — build a part and hit ＋ Log it."}</div>`;
+    const hiddenByFilter = source.length && source.some(e=>!logFilters[entryCat(e)]);
+    const msg = q ? "Nothing matches “"+q.replace(/</g,"&lt;")+"”"
+      : hiddenByFilter ? "Nothing in the selected categories — turn on more filters above."
+      : "Nothing saved yet — build a part and hit ＋ Log it, or upload an STL above.";
+    rows.innerHTML = `<div class="log-empty">${msg}</div>`;
     return;
   }
   const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
   rows.innerHTML = list.map((e,i)=>{
     const canEdit = authed && SB.on() && e.id!=null;
+    const up = isUpload(e);
+    const badge = up
+      ? `<span class="kind-badge upload" title="Uploaded file">FILE</span>`
+      : `<span class="kind-badge ${e.kind==="STL"?"stl":""}">${esc(e.kind)}</span>`;
+    const actions = up
+      ? `<button class="lr-load lr-dl" data-i="${i}" title="Download this file">↓ stl</button>`
+      : (e.snap? `<button class="lr-load" data-i="${i}">Load</button><button class="lr-load lr-dl" data-i="${i}" title="Regenerate & download">↓ ${e.kind==="SCAD"?"scad":e.kind==="JSON"?"json":"stl"}</button>`:"");
+    const metaHead = up ? "uploaded file" : esc(e.mode);
     return `<div class="log-row" data-i="${i}">
       <div class="lr-name">${esc(e.name || e.file)}</div>
       <div class="lr-file">${esc(e.file)}</div>
-      <div class="lr-meta">${esc(e.mode)} · ${esc(e.size)}${e.cap? " · "+esc(e.cap):""} · ${fmtDate(e.t)}</div>
+      <div class="lr-meta">${metaHead}${e.size? " · "+esc(e.size):""}${e.cap? " · "+esc(e.cap):""} · ${fmtDate(e.t)}</div>
       <div class="lr-side">
-        <span class="kind-badge ${e.kind==="STL"?"stl":""}">${esc(e.kind)}</span>
-        ${e.snap? `<button class="lr-load" data-i="${i}">Load</button><button class="lr-load lr-dl" data-i="${i}" title="Regenerate & download">↓ ${e.kind==="SCAD"?"scad":e.kind==="JSON"?"json":"stl"}</button>`:""}
+        ${badge}
+        ${actions}
         ${canEdit? `<button class="lr-load lr-edit" data-i="${i}">Edit</button><button class="lr-load lr-del" data-i="${i}">Delete</button>`:""}
       </div>
       ${canEdit? `<div class="lr-edit-row hide" data-edit="${i}">
@@ -1267,7 +1395,7 @@ function renderLog(){
     });
   });
   rows.querySelectorAll(".lr-dl").forEach(b=>{
-    b.addEventListener("click",()=>{ const e=list[+b.dataset.i]; if(e) downloadFromEntry(e); });
+    b.addEventListener("click",()=>{ const e=list[+b.dataset.i]; if(!e) return; if(isUpload(e)) downloadUpload(e); else downloadFromEntry(e); });
   });
   rows.querySelectorAll(".lr-edit").forEach(b=>{
     b.addEventListener("click",()=>{ const r=rows.querySelector(`[data-edit="${b.dataset.i}"]`); if(r) r.classList.toggle("hide"); });
@@ -1287,6 +1415,11 @@ function renderLog(){
 }
 $("#logSearch").addEventListener("input",renderLog);
 $("#logRefresh").addEventListener("click",loadTeam);
+document.querySelectorAll("#logFilters .lf-chip").forEach(c=>{
+  c.addEventListener("click",()=>{ logFilters[c.dataset.cat]=!logFilters[c.dataset.cat]; syncFilterChips(); renderLog(); });
+});
+$("#luSave").addEventListener("click",uploadStlFile);
+$("#luFile").addEventListener("change",setFileLabel);
 // auto-refresh the log every 12s while the Log tab is open
 let logPoll=null;
 function startLogPoll(){ stopLogPoll(); logPoll=setInterval(()=>{ if(!$("#logPanel").classList.contains("hide")) loadTeam(); }, 12000); }
@@ -1339,6 +1472,7 @@ async function sbDelete(entry){
       method:"DELETE", headers:SB.headers({Prefer:"return=minimal"})
     });
     if(!r.ok) throw 0;
+    if(isUpload(entry) && entry.snap.path) sbDeleteStorage(entry.snap.path); // best-effort cleanup of the stored file
     teamEntries=teamEntries.filter(x=>x.id!==entry.id);
     updateLogCount(); renderLog();
   }catch(e){ alert("Couldn't delete — are you still signed in?"); }
